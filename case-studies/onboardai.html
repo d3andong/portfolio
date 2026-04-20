@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OnboardAI — Case Study · Dean Eyolfson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_case.css">
+<style>
+  /* ─── OnboardAI product palette (from the app itself) ─── */
+  :root {
+    --oa-ink: #1a2332;       /* deep navy — app chrome */
+    --oa-ink-2: #232d3f;
+    --oa-amber: #f0a030;     /* accent gold */
+    --oa-paper: #f8f7f4;     /* app bg */
+    --oa-surface: #ffffff;
+    --oa-muted: #8c8c8c;
+    --oa-border: rgba(26,35,50,0.10);
+    --oa-green: #7aa878;
+    --oa-green-soft: #dcead8;
+  }
+
+  /* Hero override — put a real screen next to the intro */
+  .hero-split {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 8rem var(--edge) 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 4rem;
+    align-items: end;
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .hero-split__stage {
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 460px;
+  }
+  .hero-split__stage::before {
+    content:'';
+    position: absolute;
+    inset: -4rem -2rem 0 -2rem;
+    background:
+      radial-gradient(60% 55% at 60% 45%, rgba(193,74,31,0.10), transparent 70%),
+      radial-gradient(40% 60% at 20% 80%, rgba(31,74,61,0.08), transparent 70%);
+    z-index: 0;
+  }
+
+  /* Device mockup wrapper (used in hero + sections) */
+  .device {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--oa-paper);
+    box-shadow:
+      0 1px 0 rgba(21,18,15,0.04),
+      0 30px 80px -20px rgba(21,18,15,0.35),
+      0 10px 30px -10px rgba(21,18,15,0.18),
+      inset 0 0 0 1px rgba(21,18,15,0.08);
+    width: 100%;
+  }
+  .device__chrome {
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.55rem 0.85rem;
+    background: #edeae4;
+    border-bottom: 1px solid rgba(21,18,15,0.08);
+  }
+  .device__chrome .dot { width: 10px; height: 10px; border-radius: 999px; }
+  .device__chrome .dot:nth-child(1) { background: #e48d58; }
+  .device__chrome .dot:nth-child(2) { background: #d4a84b; }
+  .device__chrome .dot:nth-child(3) { background: #7a8c6e; }
+  .device__chrome .url {
+    margin-left: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: rgba(21,18,15,0.4);
+    letter-spacing: 0.04em;
+  }
+
+  .hero-split__stage .device {
+    transform: perspective(1800px) rotateY(-6deg) rotateX(2deg);
+    transform-origin: center right;
+    max-width: 640px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── OnboardAI app recreation ─── */
+  .oa {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    grid-template-rows: 36px 1fr;
+    grid-template-areas:
+      "top top"
+      "side main";
+    min-height: 400px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #2d2d2d;
+    background: var(--oa-paper);
+  }
+  .oa--tall { min-height: 540px; }
+
+  .oa__top {
+    grid-area: top;
+    background: var(--oa-ink);
+    color: #fff;
+    display: flex; align-items: center;
+    padding: 0 1rem;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+  .oa__logo {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-weight: 600; letter-spacing: -0.01em;
+  }
+  .oa__logo::before {
+    content:''; width: 18px; height: 18px; border-radius: 4px;
+    background: var(--oa-amber);
+    position: relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .oa__logo::after {
+    content:'';
+    width: 0; height: 0;
+  }
+  .oa__exploring {
+    margin-left: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+  }
+  .oa__exploring b { color: rgba(255,255,255,0.82); font-weight: 400; }
+  .oa__top-right {
+    margin-left: auto;
+    display: flex; gap: 1rem;
+    color: rgba(255,255,255,0.72);
+    font-size: 9.5px;
+  }
+
+  .oa__side {
+    grid-area: side;
+    background: #0f1624;
+    color: rgba(255,255,255,0.82);
+    padding: 0.85rem 0.65rem;
+    font-size: 9px;
+    overflow: hidden;
+  }
+  .oa__side-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
+    padding: 0 0.35rem 0.5rem;
+  }
+  .oa__topic {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.4rem 0.5rem;
+    border-radius: 5px;
+    margin-bottom: 0.2rem;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+  .oa__topic.is-active { background: rgba(240,160,48,0.10); color: #fff; }
+  .oa__topic span:first-child { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .oa__topic .icon { width: 9px; height: 9px; display:inline-block; }
+  .oa__topic .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    background: rgba(255,255,255,0.08);
+    padding: 1px 5px;
+    border-radius: 999px;
+    color: rgba(255,255,255,0.65);
+  }
+  .oa__side-divider {
+    height: 1px; background: rgba(255,255,255,0.08);
+    margin: 0.7rem 0;
+  }
+  .oa__doc {
+    display: flex; gap: 0.35rem; align-items: flex-start;
+    padding: 0.25rem 0.5rem;
+    color: rgba(255,255,255,0.55);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    line-height: 1.4;
+  }
+  .oa__doc-icon { flex: 0 0 8px; margin-top: 1px; color: var(--oa-amber); opacity: 0.75; }
+  .oa__doc-meta { font-size: 6.5px; color: rgba(255,255,255,0.35); }
+
+  .oa__main {
+    grid-area: main;
+    display: flex; flex-direction: column;
+    padding: 1.25rem 1.5rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Welcome screen */
+  .oa__welcome {
+    display: flex; flex-direction: column; align-items: center;
+    margin-top: 1rem;
+  }
+  .oa__welcome-badge {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--oa-ink);
+    display: grid; place-items: center;
+    color: var(--oa-amber);
+    margin-bottom: 0.9rem;
+    box-shadow: 0 4px 12px rgba(26,35,50,0.25);
+  }
+  .oa__welcome h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--oa-ink);
+    margin-bottom: 0.35rem;
+  }
+  .oa__welcome p {
+    font-size: 10px;
+    color: var(--oa-muted);
+    margin-bottom: 1.25rem;
+  }
+  .oa__suggest {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 420px;
+  }
+  .oa__suggest-card {
+    background: #fff;
+    border: 1px solid var(--oa-border);
+    border-radius: 6px;
+    padding: 0.55rem 0.65rem;
+    font-size: 8.5px;
+    line-height: 1.35;
+    color: var(--oa-ink);
+  }
+
+  /* Chat messages */
+  .oa__chat {
+    flex: 1;
+    overflow: hidden;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .oa__msg { display: flex; gap: 0.5rem; }
+  .oa__msg--user { justify-content: flex-end; }
+  .oa__msg--user .oa__bubble {
+    background: var(--oa-ink); color: #fff;
+    border-radius: 10px 10px 2px 10px;
+    font-size: 9px;
+    padding: 0.5rem 0.7rem;
+    max-width: 68%;
+  }
+  .oa__msg--user .oa__time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px; color: var(--oa-muted);
+    align-self: flex-end;
+    margin-left: 0.35rem;
+  }
+  .oa__msg--ai .oa__avatar {
+    width: 18px; height: 18px; border-radius: 999px;
+    background: var(--oa-ink);
+    color: #fff; display: grid; place-items: center;
+    font-size: 6.5px; font-weight: 600;
+    flex: 0 0 18px;
+  }
+  .oa__msg--ai .oa__bubble {
+    background: #fff;
+    border: 1px solid var(--oa-border);
+    border-radius: 2px 10px 10px 10px;
+    font-size: 9px;
+    padding: 0.65rem 0.75rem;
+    line-height: 1.5;
+    color: #2d2d2d;
+    max-width: 82%;
+  }
+  .oa__bubble h4 {
+    font-size: 9.5px; font-weight: 600;
+    color: var(--oa-ink);
+    margin: 0.1rem 0 0.35rem;
+    letter-spacing: -0.005em;
+  }
+  .oa__bubble ol { padding-left: 0.95rem; margin: 0.2rem 0; }
+  .oa__bubble ol li {
+    margin-bottom: 0.25rem;
+    font-size: 9px;
+  }
+  .oa__bubble ol li strong { font-weight: 600; color: var(--oa-ink); }
+  .oa__bubble ul { padding-left: 0.9rem; margin: 0.25rem 0; list-style: disc; }
+  .oa__bubble ul li { font-size: 8.5px; color: #444; line-height: 1.5; margin-bottom: 0.2rem; }
+  .oa__bubble a.lnk { color: var(--oa-ink); text-decoration: underline; text-underline-offset: 2px; }
+  .oa__bubble .src {
+    color: var(--oa-ink);
+    font-weight: 600;
+    background: rgba(240,160,48,0.14);
+    padding: 0 3px;
+    border-radius: 3px;
+    font-size: 8.5px;
+  }
+
+  .oa__input {
+    margin-top: auto;
+    display: flex; align-items: center; gap: 0.45rem;
+    padding: 0.5rem 0.65rem;
+    background: #fff;
+    border: 1px solid var(--oa-border);
+    border-radius: 7px;
+    font-size: 9px;
+    color: var(--oa-muted);
+  }
+  .oa__input .send {
+    margin-left: auto;
+    width: 20px; height: 20px;
+    background: var(--oa-ink); color: #fff;
+    border-radius: 5px;
+    display: grid; place-items: center;
+    font-size: 8px;
+  }
+
+  /* Source card (for sc4) */
+  .oa__source {
+    margin-top: 0.6rem;
+    background: #f3f5f1;
+    border-radius: 6px;
+    border-left: 3px solid var(--oa-green);
+    padding: 0.6rem 0.75rem;
+    font-size: 8.5px;
+    line-height: 1.5;
+    color: #4a5a4a;
+  }
+  .oa__source-head {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .oa__source-head b {
+    font-size: 9px; color: var(--oa-ink); font-weight: 600;
+  }
+  .oa__source-head .score {
+    background: var(--oa-green-soft);
+    color: #3d6a3a;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 500;
+  }
+  .oa__source-head .hide {
+    margin-left: auto;
+    color: var(--oa-muted);
+    font-size: 7.5px;
+  }
+  .oa__source-file {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: var(--oa-muted);
+    margin-bottom: 0.35rem;
+  }
+  .oa__source hr { border:0; border-top: 1px solid rgba(21,40,20,0.1); margin: 0.4rem 0; }
+  .oa__source h5 { font-size: 9px; color: var(--oa-ink); font-weight: 600; margin-bottom: 0.2rem; }
+  .oa__source .view-in {
+    color: var(--oa-ink); font-weight: 500;
+    margin-top: 0.45rem; display: inline-block; font-size: 8px;
+  }
+
+  /* Highlight block (for sc5) */
+  .oa__highlight {
+    margin: 0.5rem 0;
+    padding: 0.65rem 0.85rem;
+    background: #fff9e8;
+    border-left: 3px solid var(--oa-amber);
+    border-radius: 0 6px 6px 0;
+    font-size: 8.5px;
+    line-height: 1.55;
+    color: #4a4033;
+  }
+  .oa__highlight h5 { font-size: 9.5px; color: var(--oa-ink); margin: 0.4rem 0 0.15rem; font-weight: 600; }
+  .oa__highlight .mono { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: #6b6154; }
+
+  /* Workspace picker modal */
+  .oa__modal-scrim {
+    position: absolute; inset: 0;
+    background: rgba(21,18,15,0.45);
+    display: grid; place-items: center;
+    padding: 1rem;
+  }
+  .oa__modal {
+    width: 100%; max-width: 480px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem 0.9rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .oa__modal h2 {
+    text-align: center; font-size: 14px; font-weight: 600;
+    color: var(--oa-ink); margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+  }
+  .oa__modal > p {
+    text-align: center; font-size: 9px; color: var(--oa-muted);
+    margin-bottom: 0.85rem;
+  }
+  .oa__ws-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    margin-bottom: 0.85rem;
+  }
+  .oa__ws {
+    background: #f5f3ee;
+    border-radius: 8px;
+    padding: 0.65rem;
+    font-size: 8px;
+  }
+  .oa__ws .ico { font-size: 14px; margin-bottom: 0.25rem; line-height: 1; }
+  .oa__ws h3 { font-size: 9px; font-weight: 600; color: var(--oa-ink); margin-bottom: 0.2rem; letter-spacing: -0.005em; }
+  .oa__ws p { font-size: 7.5px; color: var(--oa-muted); line-height: 1.4; margin-bottom: 0.45rem; }
+  .oa__ws .chunks {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: var(--oa-muted);
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .oa__modal-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--oa-border);
+    padding-top: 0.65rem;
+  }
+  .oa__dots { display: flex; gap: 4px; }
+  .oa__dots span {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: rgba(26,35,50,0.15);
+  }
+  .oa__dots span.on { width: 16px; background: var(--oa-ink); border-radius: 3px; }
+  .oa__cta {
+    background: var(--oa-ink); color: #fff;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 8.5px;
+    font-weight: 600;
+  }
+
+  /* ─── Case-study body layout ─── */
+  .shots-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 3rem 0;
+  }
+  .shot-wrap figcaption {
+    margin-top: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    display: flex; align-items: baseline; gap: 0.75rem;
+  }
+  .shot-wrap figcaption .num {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .shot-wrap figcaption .desc { color: var(--fg); text-transform: none; letter-spacing: 0; font-family: var(--font-serif); font-style: italic; font-size: 0.95rem; font-weight: 300; }
+
+  /* Moment header for larger single-shot sections */
+  .moment {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem var(--edge) 1rem;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 3rem;
+    align-items: baseline;
+  }
+  .moment__num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .moment__num::before {
+    content:'';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.6rem;
+  }
+  .moment h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .moment h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .moment p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--fg-dim);
+    max-width: 52ch;
+  }
+  .moment-shot {
+    max-width: 1100px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 var(--edge);
+  }
+
+  /* Stack split — text on one side, image on other */
+  .split {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem var(--edge);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .split--flip { direction: rtl; }
+  .split--flip > * { direction: ltr; }
+  .split h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .split h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .split p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--fg-dim);
+    margin-bottom: 0.85rem;
+  }
+
+  /* Stack diagram */
+  .stack {
+    background: var(--paper);
+    border-radius: 12px;
+    border: 1px solid var(--fg-faint);
+    padding: 1.5rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .stack__layer {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 0.85rem;
+    align-items: center;
+    padding: 0.7rem 0.85rem;
+    background: rgba(21,18,15,0.03);
+    border-radius: 6px;
+    border: 1px solid var(--fg-faint);
+  }
+  .stack__layer .k {
+    color: var(--accent);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .stack__layer .v { color: var(--fg); font-size: 0.82rem; }
+  .stack__layer .note { color: var(--fg-dim); font-size: 0.6rem; }
+  .stack__arrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--fg-faint);
+    margin: 0;
+    line-height: 0.5;
+  }
+
+  /* Architecture diagram — dark card with SVG */
+  .arch {
+    background: #0f1216;
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem 1.1rem;
+    margin: 1rem 0 0;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.04),
+      0 24px 60px -30px rgba(0,0,0,0.55);
+    overflow: hidden;
+  }
+  .arch__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .arch__label { color: var(--accent-3); }
+  .arch__sub { color: rgba(212,168,75,0.45); }
+  .arch__svg { width: 100%; height: auto; display: block; }
+
+  @media (max-width: 900px) {
+    .hero-split { grid-template-columns: 1fr; padding-top: 6rem; gap: 2rem; }
+    .hero-split__stage { min-height: 300px; }
+    .hero-split__stage .device { transform: none; }
+    .shots-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .moment { grid-template-columns: 1fr; gap: 1rem; }
+    .split { grid-template-columns: 1fr; gap: 1.5rem; }
+    .oa { grid-template-columns: 140px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../Portfolio.html" class="back-nav">
+  <span class="arrow">←</span>
+  <span>Index</span>
+</a>
+
+<!-- ─────────────── HERO with live-ish screenshot beside title ─────────────── -->
+<section class="hero-split">
+  <div>
+    <div class="hero__eyebrow">
+      <span class="dot"></span>
+      <span>Case 01</span>
+      <span style="opacity:.4">/</span>
+      <span>2025</span>
+    </div>
+    <h1 class="hero__title">OnboardAI — a RAG assistant for company documentation.</h1>
+    <p class="hero__summary">Upload a handbook, wiki, or SOP. New hires ask questions and receive cited answers grounded in the source documents. Shipped and live.</p>
+    <div class="hero__tags">
+      <span class="hero__tag">React · Vite</span>
+      <span class="hero__tag">FastAPI</span>
+      <span class="hero__tag">ChromaDB</span>
+      <span class="hero__tag">OpenAI · gpt-4o-mini</span>
+      <span class="hero__tag">text-embedding-3-small</span>
+    </div>
+    <div class="hero__meta">
+      <div class="hero__meta-cell"><span class="k">Role</span><span class="v">Design · Build</span></div>
+      <div class="hero__meta-cell"><span class="k">Year</span><span class="v">2025</span></div>
+      <div class="hero__meta-cell"><span class="k">Status</span><span class="v">Live · Deployed</span></div>
+      <div class="hero__meta-cell"><span class="k">Link</span><span class="v"><a href="https://onboard-ai-gold.vercel.app/" target="_blank" rel="noopener" style="border-bottom:1px solid var(--fg-faint)">onboard-ai-gold ↗</a></span></div>
+    </div>
+  </div>
+
+  <div class="hero-split__stage">
+    <div class="device">
+      <div class="device__chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">onboard-ai-gold.vercel.app</span>
+      </div>
+      <!-- Hero mini app: welcome -->
+      <div class="oa">
+        <header class="oa__top">
+          <span class="oa__logo">OnboardAI</span>
+          <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b></span>
+          <div class="oa__top-right"><span>+ New Chat</span></div>
+        </header>
+        <aside class="oa__side">
+          <div class="oa__side-label">Topics</div>
+          <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Handbook</span><span class="count">3070</span></div>
+          <div class="oa__topic"><span><span class="icon">💼</span> SBA Tax Guide</span><span class="count">100</span></div>
+          <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Docs</span><span class="count">109</span></div>
+          <div class="oa__side-divider"></div>
+          <div class="oa__side-label">Documents</div>
+          <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__fina…<div class="oa__doc-meta">25 chunks · Mar 15</div></div></div>
+          <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__peop…<div class="oa__doc-meta">61 chunks · Mar 15</div></div></div>
+          <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__peop…<div class="oa__doc-meta">7 chunks · Mar 15</div></div></div>
+          <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__fina…<div class="oa__doc-meta">173 chunks · Mar 15</div></div></div>
+        </aside>
+        <main class="oa__main">
+          <div class="oa__welcome">
+            <div class="oa__welcome-badge">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h1>Welcome to OnboardAI</h1>
+            <p>Ask anything about your company docs, policies, and processes.</p>
+            <div class="oa__suggest">
+              <div class="oa__suggest-card">What does DACI stand for and how is it used to define roles in a team?</div>
+              <div class="oa__suggest-card">Can you explain the process for applying for a long-term relocation at GitLab?</div>
+              <div class="oa__suggest-card">What was the engagement score from the FY'22 Q4 Pulse Engagement Survey?</div>
+              <div class="oa__suggest-card">How does the Organization Change Checklist creation process work?</div>
+            </div>
+          </div>
+          <div class="oa__input">
+            <span>Ask a question about your docs…</span>
+            <span class="send">➤</span>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── THE PROBLEM / CONTEXT ─────────────── -->
+<section class="section">
+  <div class="section__eyebrow">Context</div>
+  <h2 class="section__title">Problem.</h2>
+
+  <div class="context-grid">
+    <div class="context-card">
+      <div class="context-card__label">Problem</div>
+      <div class="context-card__title">Company knowledge is scattered across PDFs, wikis, and Notion.</div>
+      <div class="context-card__body">New hires ask the same questions repeatedly in Slack. Managers answer them repeatedly. The information exists; retrieval is the bottleneck.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Users</div>
+      <div class="context-card__title">Admins who own the corpus, new hires who need answers.</div>
+      <div class="context-card__body">Admins upload and curate. New hires need fast, specific, verifiable answers.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Constraint</div>
+      <div class="context-card__title">Answers must cite their source.</div>
+      <div class="context-card__body">Generic LLMs hallucinate. HR-grade answers require a traceable link back to the document and section.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Approach</div>
+      <div class="context-card__title">RAG with inline citations and a source-card UI.</div>
+      <div class="context-card__body">Retrieval-augmented generation over ChromaDB. Every claim is tagged with a source number; every source card links to the original document.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── FIVE MOMENTS ─────────────── -->
+<section class="section" style="padding-top:2rem;padding-bottom:1rem;">
+  <div class="section__eyebrow">Product walkthrough</div>
+  <h2 class="section__title">Five screens.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.6;color:var(--fg-dim);max-width:52rem;">Rebuilt snapshots of the live product. Each shows a specific stage of the retrieval loop.</p>
+</section>
+
+<!-- Moment 1 — Workspace picker (FIRST screen for demo visitors) -->
+<div class="moment">
+  <div class="moment__num">Screen 01 · Workspace picker</div>
+  <div>
+    <h3>First-run: choose a demo corpus.</h3>
+    <p>In production this is white-labeled to a single company's knowledge base. The public demo offers three indexed corpora so a visitor can test the retrieval loop without uploading anything.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">/ — workspace picker modal</span>
+    </div>
+    <div class="oa oa--tall" style="position:relative;">
+      <header class="oa__top">
+        <span class="oa__logo">OnboardAI</span>
+        <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b></span>
+        <div class="oa__top-right"><span>+ New Chat</span></div>
+      </header>
+      <aside class="oa__side">
+        <div class="oa__side-label">Topics</div>
+        <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Employee Handbook</span><span class="count">3070</span></div>
+        <div class="oa__topic"><span><span class="icon">💼</span> SBA Tax Guide</span><span class="count">100</span></div>
+        <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Docs</span><span class="count">109</span></div>
+      </aside>
+      <main class="oa__main" style="filter: blur(1px);">
+        <div class="oa__welcome" style="opacity:.35;">
+          <div class="oa__welcome-badge"></div>
+          <h1>Welcome to OnboardAI</h1>
+          <p>Ask anything about your company docs, policies, and processes.</p>
+        </div>
+      </main>
+      <!-- Modal -->
+      <div class="oa__modal-scrim" style="grid-column: 1 / -1; grid-row: 1 / -1;">
+        <div class="oa__modal">
+          <h2>Try it now</h2>
+          <p>These are real documents we've pre-loaded for you. Pick one to get started.</p>
+          <div class="oa__ws-grid">
+            <div class="oa__ws">
+              <div class="ico">📋</div>
+              <h3>GitLab Employee Handbook</h3>
+              <p>GitLab's public company handbook — PTO, benefits, values, spending policies, onboarding</p>
+              <span class="chunks">3070 chunks</span>
+            </div>
+            <div class="oa__ws">
+              <div class="ico">💼</div>
+              <h3>SBA Small Business Tax Guide</h3>
+              <p>SBA.gov guides on small business taxes — structures, deductions, deadlines, filing requirements</p>
+              <span class="chunks">100 chunks</span>
+            </div>
+            <div class="oa__ws">
+              <div class="ico">⚡</div>
+              <h3>Supabase Developer Docs</h3>
+              <p>Supabase official docs — database, auth, storage, edge functions, migrations</p>
+              <span class="chunks">109 chunks</span>
+            </div>
+          </div>
+          <div class="oa__modal-foot">
+            <div class="oa__dots"><span></span><span></span><span class="on"></span></div>
+            <span class="oa__cta">Get Started →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Moment 2 — Welcome default -->
+<div class="moment">
+  <div class="moment__num">Screen 02 · Default state</div>
+  <div>
+    <h3>Empty chat with four starter questions.</h3>
+    <p>Once a corpus is selected, the chat opens empty with four contextual starter questions drawn from the active knowledge base. One click starts a query.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">/ — welcome screen</span>
+    </div>
+    <div class="oa oa--tall">
+      <header class="oa__top">
+        <span class="oa__logo">OnboardAI</span>
+        <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b></span>
+        <div class="oa__top-right"><span>+ New Chat</span></div>
+      </header>
+      <aside class="oa__side">
+        <div class="oa__side-label">Topics</div>
+        <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Employee Handbook</span><span class="count">3070</span></div>
+        <div class="oa__topic"><span><span class="icon">💼</span> SBA Small Business Tax Guide</span><span class="count">100</span></div>
+        <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Developer Docs</span><span class="count">109</span></div>
+        <div class="oa__side-divider"></div>
+        <div class="oa__side-label">Documents</div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__fina…<div class="oa__doc-meta">25 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__peop…<div class="oa__doc-meta">61 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__peop…<div class="oa__doc-meta">7 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__fina…<div class="oa__doc-meta">173 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>CONTRIBUTING.md.md<div class="oa__doc-meta">2 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__comm…<div class="oa__doc-meta">459 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>content__handbook__peop…<div class="oa__doc-meta">23 chunks · Mar 15</div></div></div>
+        <div class="oa__doc"><span class="oa__doc-icon">▧</span><div>README.md.md<div class="oa__doc-meta">1 chunks · Mar 15</div></div></div>
+      </aside>
+      <main class="oa__main">
+        <div class="oa__welcome">
+          <div class="oa__welcome-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h1>Welcome to OnboardAI</h1>
+          <p>Ask anything about your company docs, policies, and processes.</p>
+          <div class="oa__suggest">
+            <div class="oa__suggest-card">What does DACI stand for and how is it used to define roles in a team?</div>
+            <div class="oa__suggest-card">Can you explain the process for applying for a long-term relocation at GitLab?</div>
+            <div class="oa__suggest-card">What was the engagement score from the FY'22 Q4 Pulse Engagement Survey and how does it compare to the peer group?</div>
+            <div class="oa__suggest-card">How does the Organization Change Checklist creation process work when a team member qualifies?</div>
+          </div>
+        </div>
+        <div class="oa__input">
+          <span>Ask a question about your docs…</span>
+          <span class="send">➤</span>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Moment 3 — Answer summary -->
+<div class="moment">
+  <div class="moment__num">Screen 03 · Grounded answer</div>
+  <div>
+    <h3>Structured response with inline citations.</h3>
+    <p>The generator prompt constrains the LLM to retrieved chunks and requires inline source labels. Output is a numbered response with <b>Source N</b> tags next to each claim.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">/ — answer with inline citations</span>
+    </div>
+    <div class="oa oa--tall">
+      <header class="oa__top">
+        <span class="oa__logo">OnboardAI</span>
+        <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b></span>
+        <div class="oa__top-right"><span>+ New Chat</span></div>
+      </header>
+      <aside class="oa__side">
+        <div class="oa__side-label">Topics</div>
+        <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Handbook</span><span class="count">3070</span></div>
+        <div class="oa__topic"><span><span class="icon">💼</span> SBA Tax Guide</span><span class="count">100</span></div>
+        <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Docs</span><span class="count">109</span></div>
+      </aside>
+      <main class="oa__main">
+        <div class="oa__chat">
+          <div class="oa__msg oa__msg--user">
+            <div class="oa__bubble">Can you explain the process for applying for a long-term relocation at GitLab?</div>
+          </div>
+          <div style="text-align:right; margin-top:-0.25rem;"><span class="oa__time" style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--oa-muted);">03:03 PM</span></div>
+
+          <div class="oa__msg oa__msg--ai">
+            <div class="oa__avatar">AI</div>
+            <div class="oa__bubble">
+              Certainly! Here's a concise overview of the process for applying for a long-term relocation at GitLab:
+              <h4>Steps to Apply for Long-Term Relocation</h4>
+              <ol>
+                <li><strong>Review Country Hiring Guidelines:</strong>
+                  <ul><li>Check the <a class="lnk">Country hiring guidelines</a> to determine if GitLab can support your relocation to the desired country <span class="src">Source 1</span>.</li></ul>
+                </li>
+                <li><strong>Confirm GitLab Entity:</strong>
+                  <ul><li>Ensure that GitLab has an entity in the country you wish to move to. Relocations are only supported to countries where GitLab is open for hiring and does not have hiring restrictions or headcount caps <span class="src">Source 2</span>.</li></ul>
+                </li>
+                <li><strong>Eligibility to Work:</strong>
+                  <ul><li>Confirm your eligibility to work in the new location. Note that GitLab does not provide sponsorship or immigration aid for team members moving to new countries, except for the Netherlands <span class="src">Source 3</span>.</li></ul>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <div class="oa__input">
+          <span>Ask a question about your docs…</span>
+          <span class="send">➤</span>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- Moment 4 — Source card -->
+<div class="moment">
+  <div class="moment__num">Screen 04 · Source card</div>
+  <div>
+    <h3>Retrieved chunk, score, and file path.</h3>
+    <p>Each source card displays the retrieved text, cosine relevance score, filename and section, and a link to the document viewer.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">/ — source card with relevance score</span>
+    </div>
+    <div class="oa">
+      <header class="oa__top">
+        <span class="oa__logo">OnboardAI</span>
+        <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b></span>
+        <div class="oa__top-right"><span>+ New Chat</span></div>
+      </header>
+      <aside class="oa__side">
+        <div class="oa__side-label">Topics</div>
+        <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Handbook</span><span class="count">3070</span></div>
+        <div class="oa__topic"><span><span class="icon">💼</span> SBA Tax Guide</span><span class="count">100</span></div>
+        <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Docs</span><span class="count">109</span></div>
+      </aside>
+      <main class="oa__main">
+        <div class="oa__msg oa__msg--ai" style="margin-top:0.5rem;">
+          <div class="oa__avatar">AI</div>
+          <div class="oa__bubble" style="max-width:100%;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--oa-muted);margin-bottom:0.4rem;">Sources</div>
+            <div class="oa__source">
+              <div class="oa__source-head">
+                <b>Source 1</b>
+                <span class="score">81%</span>
+                <span class="hide">^ Hide</span>
+              </div>
+              <div class="oa__source-file">content__handbook__people-group__relocation.md.md<br>§ Team Member</div>
+              <hr>
+              <div style="color:#555;">9B0lsMu7dMhof1ghPuBxHP23DuDqi2qpWF8pCWyEUN4/edit).</div>
+              <div style="margin-top:0.35rem;color:#555;">If you move before establishing eligibility to work, but then cannot establish eligibility to work in the new location within the first six months of residency, it may affect your ability to continue your role with GitLab.</div>
+              <h5 style="margin-top:0.5rem;">How To Apply for a Long-Term Relocation</h5>
+              <h5 style="margin-top:0.2rem;">Team Member</h5>
+              <div style="color:#555;">Review the Country hiring guidelines to see if we can support your relocation.</div>
+              <a class="view-in">View in document ↗</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- Moment 5 — Highlights -->
+<div class="moment">
+  <div class="moment__num">Screen 05 · Document viewer</div>
+  <div>
+    <h3>Highlighted chunk in original context.</h3>
+    <p>The viewer opens the source document inline with the retrieved chunk highlighted. Surrounding context remains visible for verification.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">/ — inline document highlight</span>
+    </div>
+    <div class="oa">
+      <header class="oa__top">
+        <span class="oa__logo">OnboardAI</span>
+        <span class="oa__exploring">Exploring: <b>GitLab Employee Handbook</b> / relocation.md</span>
+        <div class="oa__top-right"><span>+ New Chat</span></div>
+      </header>
+      <aside class="oa__side">
+        <div class="oa__side-label">Topics</div>
+        <div class="oa__topic is-active"><span><span class="icon">📘</span> GitLab Handbook</span><span class="count">3070</span></div>
+        <div class="oa__topic"><span><span class="icon">💼</span> SBA Tax Guide</span><span class="count">100</span></div>
+        <div class="oa__topic"><span><span class="icon">⚡</span> Supabase Docs</span><span class="count">109</span></div>
+      </aside>
+      <main class="oa__main" style="padding:1rem 1.25rem 1rem;">
+        <div style="font-family:'Inter',sans-serif;font-size:9px;line-height:1.6;color:#555;max-width:560px;">
+          <p style="margin-bottom:0.6rem;">Once you are certain that you are eligible to work in your requested location country, you will need to provide proof of eligibility by [uploading the proof in the Documents tab of your Workday profile](https://docs.google.com/document/d/1</p>
+          <div class="oa__highlight">
+            <div class="mono">9B0lsMu7dMhof1ghPuBxHP23DuDqi2qpWF8pCWyEUN4/edit).</div>
+            <p style="margin-top:0.3rem;">If you move before establishing eligibility to work, but then cannot establish eligibility to work in the new location within the first six months of residency, it may affect your ability to continue your role with GitLab.</p>
+            <h5>How To Apply for a Long-Term Relocation</h5>
+            <h5 style="margin-top:0.1rem;">Team Member</h5>
+            <p>Review the <a style="color:#1a5bd8;text-decoration:underline;">Country hiring guidelines</a> to see if we can support your relocation.</p>
+          </div>
+          <p style="margin-top:0.6rem;">*If you are moving to a different country, please start this process no later than <b style="color:var(--oa-ink);">3 months</b> prior to your ideal relocation date.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── HOW IT'S BUILT ─────────────── -->
+<div class="rule"><div class="rule__line"></div></div>
+
+<section class="section" style="max-width:1100px;">
+  <div class="section__eyebrow">Architecture</div>
+  <h2 class="section__title">Stack.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.7;color:var(--fg-dim);max-width:52rem;margin-bottom:1rem;">Vite + React frontend. FastAPI backend with four routers under <code style="font-family:var(--font-mono);font-size:0.85rem;background:rgba(21,18,15,0.05);padding:0 4px;border-radius:3px;">/api</code>. ChromaDB persists one collection per topic. OpenAI <code style="font-family:var(--font-mono);font-size:0.85rem;background:rgba(21,18,15,0.05);padding:0 4px;border-radius:3px;">text-embedding-3-small</code> for vectors, <code style="font-family:var(--font-mono);font-size:0.85rem;background:rgba(21,18,15,0.05);padding:0 4px;border-radius:3px;">gpt-4o-mini</code> for generation.</p>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.7;color:var(--fg-dim);max-width:52rem;margin-bottom:1.5rem;">Chunking splits on paragraph → sentence → word boundaries with 50-character overlap and header detection. Retrieval returns top-5 chunks filtered at cosine ≥ 0.3. The generator prompt restricts the LLM to retrieved context and requires inline source tags.</p>
+  <div class="tag-list" style="margin-bottom:2.5rem;">
+    <span class="tag">GET /api/topics</span>
+    <span class="tag">POST /api/query</span>
+    <span class="tag">/api/documents</span>
+    <span class="tag">/api/viewer</span>
+  </div>
+
+  <!-- ── Architecture diagram ── -->
+  <figure class="arch" aria-label="OnboardAI backend architecture">
+    <figcaption class="arch__head">
+      <span class="arch__label">OnboardAI · Backend Architecture</span>
+      <span class="arch__sub">Request flow, left → right</span>
+    </figcaption>
+
+    <svg class="arch__svg" viewBox="0 0 1200 800" role="img" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <!-- Arrowheads -->
+        <marker id="arr-query" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#c14a1f"/>
+        </marker>
+        <marker id="arr-ingest" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#7a8c6e"/>
+        </marker>
+        <marker id="arr-thin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#d4a84b" opacity="0.75"/>
+        </marker>
+
+        <!-- Column background -->
+        <linearGradient id="col-fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.02"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Column header strips -->
+      <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#6b665f">
+        <text x="90"   y="44">CLIENT</text>
+        <text x="295"  y="44">API · FASTAPI</text>
+        <text x="595"  y="44">SERVICES · app/services/</text>
+        <text x="880"  y="44">DATA</text>
+        <text x="1080" y="44">EXTERNAL</text>
+      </g>
+      <!-- Column dividers -->
+      <g stroke="#2a2520" stroke-width="1">
+        <line x1="220"  y1="60" x2="220"  y2="670"/>
+        <line x1="470"  y1="60" x2="470"  y2="670"/>
+        <line x1="830"  y1="60" x2="830"  y2="670"/>
+        <line x1="1020" y1="60" x2="1020" y2="670"/>
+      </g>
+
+      <!-- ═══ CLIENT ═══ -->
+      <g>
+        <rect x="40" y="310" width="160" height="92" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.4"/>
+        <text x="120" y="340" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="500" fill="#f6efe2">Browser</text>
+        <text x="120" y="360" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#8a8680">React · Vite</text>
+        <text x="120" y="378" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#8a8680">Tailwind</text>
+      </g>
+
+      <!-- Client → API edge label -->
+      <text x="245" y="330" font-family="JetBrains Mono, monospace" font-size="9" fill="#8a8680" letter-spacing="1.5">HTTPS · JSON</text>
+
+      <!-- ═══ API LAYER ═══ -->
+      <g>
+        <!-- CORS bar -->
+        <rect x="245" y="100" width="210" height="28" rx="4" fill="none" stroke="#6b665f" stroke-dasharray="3 3" opacity="0.55"/>
+        <text x="350" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#d4a84b" letter-spacing="1.4">CORS MIDDLEWARE</text>
+
+        <!-- app/main.py label -->
+        <text x="245" y="152" font-family="JetBrains Mono, monospace" font-size="9" fill="#6b665f">app/main.py</text>
+
+        <!-- 4 routers stacked -->
+        <g font-family="JetBrains Mono, monospace" font-size="11" fill="#e6e1d8">
+          <rect x="245" y="165" width="210" height="48" rx="6" fill="#23272f" stroke="#2d333f"/>
+          <text x="260" y="185" fill="#d4a84b">▸ topics</text>
+          <text x="260" y="202" font-size="9" fill="#8a8680">GET /api/topics</text>
+
+          <rect x="245" y="222" width="210" height="48" rx="6" fill="#23272f" stroke="#2d333f"/>
+          <text x="260" y="242" fill="#d4a84b">▸ query</text>
+          <text x="260" y="259" font-size="9" fill="#8a8680">POST /api/query</text>
+
+          <rect x="245" y="279" width="210" height="48" rx="6" fill="#23272f" stroke="#2d333f"/>
+          <text x="260" y="299" fill="#d4a84b">▸ documents</text>
+          <text x="260" y="316" font-size="9" fill="#8a8680">CRUD /api/documents</text>
+
+          <rect x="245" y="336" width="210" height="48" rx="6" fill="#23272f" stroke="#2d333f"/>
+          <text x="260" y="356" fill="#d4a84b">▸ viewer</text>
+          <text x="260" y="373" font-size="9" fill="#8a8680">chunk · source inspection</text>
+        </g>
+      </g>
+
+      <!-- ═══ SERVICE LAYER (cluster) ═══ -->
+      <g>
+        <!-- Cluster outline -->
+        <rect x="490" y="95" width="330" height="560" rx="10" fill="url(#col-fade)" stroke="#2d333f" stroke-dasharray="4 4" opacity="0.9"/>
+        <text x="505" y="115" font-family="JetBrains Mono, monospace" font-size="9" fill="#6b665f" letter-spacing="1.4">app/services/ · cluster</text>
+
+        <g font-family="JetBrains Mono, monospace" fill="#e6e1d8">
+          <!-- Row A: embeddings + retriever (query top) -->
+          <rect x="505" y="135" width="145" height="72" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="515" y="153" font-size="11" fill="#f0a030">embeddings</text>
+          <text x="515" y="170" font-size="9" fill="#8a8680">embeds queries</text>
+          <text x="515" y="184" font-size="9" fill="#8a8680">&amp; chunks</text>
+
+          <rect x="660" y="135" width="145" height="72" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="670" y="153" font-size="11" fill="#f0a030">retriever</text>
+          <text x="670" y="170" font-size="9" fill="#8a8680">top-K cosine</text>
+          <text x="670" y="184" font-size="9" fill="#8a8680">+ threshold</text>
+          <text x="670" y="200" font-size="8" fill="#6b665f">k=5 · cos ≥ 0.3</text>
+
+          <!-- Row B: generator (spans, below query row) -->
+          <rect x="505" y="225" width="300" height="76" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="515" y="245" font-size="11" fill="#f0a030">generator</text>
+          <text x="515" y="262" font-size="9" fill="#8a8680">builds prompt · calls LLM · returns grounded answer</text>
+          <text x="515" y="278" font-size="9" fill="#8a8680">+ inline source citations</text>
+          <text x="515" y="294" font-size="8" fill="#6b665f">temperature 0.2 · top-5 context</text>
+
+          <!-- Row C: vector_store (shared) -->
+          <rect x="505" y="320" width="300" height="68" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="515" y="340" font-size="11" fill="#f0a030">vector_store</text>
+          <text x="515" y="357" font-size="9" fill="#8a8680">ChromaDB client wrapper · one collection per topic</text>
+          <text x="515" y="373" font-size="8" fill="#6b665f">add · query · delete · list</text>
+
+          <!-- Row D: document_processor + chunker (ingest) -->
+          <rect x="505" y="407" width="145" height="72" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="515" y="425" font-size="11" fill="#f0a030">document_</text>
+          <text x="515" y="438" font-size="11" fill="#f0a030">processor</text>
+          <text x="515" y="455" font-size="9" fill="#8a8680">PDF · DOCX · MD</text>
+          <text x="515" y="469" font-size="8" fill="#6b665f">text extraction</text>
+
+          <rect x="660" y="407" width="145" height="72" rx="6" fill="#23272f" stroke="#3a4150"/>
+          <text x="670" y="425" font-size="11" fill="#f0a030">chunker</text>
+          <text x="670" y="442" font-size="9" fill="#8a8680">¶ → sent. → word</text>
+          <text x="670" y="456" font-size="9" fill="#8a8680">50-char overlap</text>
+          <text x="670" y="472" font-size="8" fill="#6b665f">header detection</text>
+        </g>
+      </g>
+
+      <!-- ═══ DATA LAYER ═══ -->
+      <g>
+        <!-- ChromaDB card -->
+        <rect x="845" y="110" width="170" height="290" rx="8" fill="#23272f" stroke="#3a4150"/>
+        <text x="930" y="132" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="500" fill="#f6efe2">ChromaDB</text>
+        <text x="930" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#8a8680">persistent · chroma_data/</text>
+        <text x="930" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b665f">cosine space</text>
+
+        <!-- 5 topic chips -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="#e6e1d8">
+          <rect x="858" y="178" width="144" height="28" rx="4" fill="#1a1e26" stroke="#2d333f"/>
+          <text x="867" y="196">▤ Employee Handbook</text>
+
+          <rect x="858" y="212" width="144" height="28" rx="4" fill="#1a1e26" stroke="#2d333f"/>
+          <text x="867" y="230">▤ Franchise Ops</text>
+
+          <rect x="858" y="246" width="144" height="28" rx="4" fill="#1a1e26" stroke="#2d333f"/>
+          <text x="867" y="264">▤ Real Estate</text>
+
+          <rect x="858" y="280" width="144" height="28" rx="4" fill="#1a1e26" stroke="#2d333f"/>
+          <text x="867" y="298">▤ SBA Tax Guide</text>
+
+          <rect x="858" y="314" width="144" height="28" rx="4" fill="#1a1e26" stroke="#2d333f"/>
+          <text x="867" y="332">▤ Supabase Docs</text>
+        </g>
+        <text x="930" y="370" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b665f">5 collections · one per topic</text>
+
+        <!-- uploads/ -->
+        <rect x="845" y="420" width="170" height="62" rx="6" fill="#1a1e26" stroke="#2d333f"/>
+        <text x="860" y="442" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a8c6e">uploads/</text>
+        <text x="860" y="458" font-family="JetBrains Mono, monospace" font-size="9" fill="#8a8680">raw source files</text>
+        <text x="860" y="472" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b665f">user-uploaded</text>
+
+        <!-- source_docs/ -->
+        <rect x="845" y="498" width="170" height="62" rx="6" fill="#1a1e26" stroke="#2d333f"/>
+        <text x="860" y="520" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a8c6e">source_docs/</text>
+        <text x="860" y="536" font-family="JetBrains Mono, monospace" font-size="9" fill="#8a8680">pre-bundled corpora</text>
+        <text x="860" y="550" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b665f">demo KBs</text>
+      </g>
+
+      <!-- ═══ EXTERNAL APIS ═══ -->
+      <g>
+        <rect x="1035" y="135" width="150" height="72" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.5"/>
+        <text x="1110" y="156" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="11.5" font-weight="500" fill="#f6efe2">OpenAI</text>
+        <text x="1110" y="172" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#d4a84b">Embeddings API</text>
+        <text x="1110" y="192" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#8a8680">text-embedding-3-small</text>
+
+        <rect x="1035" y="225" width="150" height="76" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.5"/>
+        <text x="1110" y="247" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="11.5" font-weight="500" fill="#f6efe2">OpenAI</text>
+        <text x="1110" y="263" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#d4a84b">Chat API</text>
+        <text x="1110" y="283" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#8a8680">gpt-4o-mini</text>
+      </g>
+
+      <!-- ═══ QUERY FLOW — TERRACOTTA SOLID (orthogonal, gutter-routed) ═══ -->
+      <g stroke="#c14a1f" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+        <!-- 1. Client → /query router (down via gutter x=232) -->
+        <path d="M 200 356 L 232 356 L 232 246 L 243 246" marker-end="url(#arr-query)"/>
+        <!-- 2. /query router → embeddings (up via gutter x=478) -->
+        <path d="M 455 246 L 478 246 L 478 171 L 503 171" marker-end="url(#arr-query)"/>
+        <!-- 3. embeddings → retriever (direct, in gutter x=655) -->
+        <path d="M 650 171 L 658 171" marker-end="url(#arr-query)"/>
+        <!-- 4. retriever → ChromaDB (right via gutter x=818, y=125 clear of all boxes) -->
+        <path d="M 805 150 L 818 150 L 818 200 L 843 200" marker-end="url(#arr-query)"/>
+        <!-- 5. ChromaDB → generator (returns context; left via gutter x=818, down to row B) -->
+        <path d="M 845 260 L 820 260 L 820 248 L 808 248" marker-end="url(#arr-query)" opacity="0.75"/>
+        <!-- 6. generator → OpenAI Chat (right via gutter, up to y=263) -->
+        <path d="M 805 278 L 818 278 L 818 263 L 1033 263" marker-end="url(#arr-query)"/>
+        <!-- 7. embeddings → OpenAI Embeddings (right via top-cluster gutter y=125) -->
+        <path d="M 577 135 L 577 125 L 1110 125 L 1110 133" marker-end="url(#arr-query)"/>
+        <!-- 8. generator → Client response (left via gutter x=478, down across bottom at y=665, up to client) -->
+        <path d="M 505 278 L 478 278 L 478 665 L 120 665 L 120 402" marker-end="url(#arr-query)" opacity="0.85"/>
+      </g>
+
+      <!-- ═══ INGEST FLOW — FOREST DASHED (orthogonal, gutter-routed) ═══ -->
+      <g stroke="#7a8c6e" stroke-width="2" stroke-dasharray="5 4" fill="none" stroke-linejoin="round" stroke-linecap="round">
+        <!-- 1. /documents router → document_processor (down via gutter x=488 to row D) -->
+        <path d="M 455 303 L 488 303 L 488 443 L 503 443" marker-end="url(#arr-ingest)"/>
+        <!-- 2. document_processor → chunker (direct) -->
+        <path d="M 650 443 L 658 443" marker-end="url(#arr-ingest)"/>
+        <!-- 3. chunker → embeddings (up via right-cluster gutter x=815, across top at y=125, down to embeddings) -->
+        <path d="M 805 443 L 815 443 L 815 487 L 495 487 L 495 171 L 503 171" marker-end="url(#arr-ingest)" opacity="0.8"/>
+        <!-- 4. embeddings → vector_store (out left via gutter x=488, down to row C) -->
+        <path d="M 577 207 L 577 215 L 488 215 L 488 354 L 503 354" marker-end="url(#arr-ingest)"/>
+        <!-- 5. vector_store → ChromaDB (right via gutter x=818, up to y=310) -->
+        <path d="M 805 354 L 818 354 L 818 310 L 843 310" marker-end="url(#arr-ingest)"/>
+      </g>
+
+      <!-- ═══ LEGEND ═══ -->
+      <g transform="translate(40, 700)">
+        <rect x="0" y="0" width="1120" height="58" rx="8" fill="#1c1f25" stroke="#2d333f"/>
+
+        <!-- query flow -->
+        <g transform="translate(22, 22)">
+          <line x1="0" y1="0" x2="40" y2="0" stroke="#c14a1f" stroke-width="2" marker-end="url(#arr-query)"/>
+          <text x="52" y="4" font-family="JetBrains Mono, monospace" font-size="10" fill="#e6e1d8" letter-spacing="1">QUERY FLOW</text>
+          <text x="52" y="22" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#8a8680">Client → /api/query → embeddings (+ OpenAI) → retriever → Chroma → generator (+ OpenAI) → Client</text>
+        </g>
+
+        <!-- divider -->
+        <line x1="560" y1="10" x2="560" y2="48" stroke="#2d333f"/>
+
+        <!-- ingest flow -->
+        <g transform="translate(582, 22)">
+          <line x1="0" y1="0" x2="40" y2="0" stroke="#7a8c6e" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr-ingest)"/>
+          <text x="52" y="4" font-family="JetBrains Mono, monospace" font-size="10" fill="#e6e1d8" letter-spacing="1">INGEST FLOW</text>
+          <text x="52" y="22" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#8a8680">scripts/ingest_demos.py or /api/documents → document_processor → chunker → embeddings → vector_store → Chroma</text>
+        </g>
+      </g>
+    </svg>
+  </figure>
+</section>
+
+<section class="split split--flip">
+  <div>
+    <div class="section__eyebrow">Design decisions</div>
+    <h3>Three product calls.</h3>
+    <p><strong>Pre-load real corpora.</strong> An empty RAG demo doesn't demonstrate retrieval. Three indexed knowledge bases (GitLab, SBA, Supabase) let a visitor test the loop immediately.</p>
+    <p><strong>Collapse sources by default.</strong> The answer is primary; citations sit below, collapsed. Users who trust the answer move on. Users who need verification expand.</p>
+    <p><strong>Display chunks verbatim.</strong> Retrieval sometimes returns fragments with markdown or hashes. The source card shows them as-is so users can diagnose why an answer was produced.</p>
+  </div>
+  <div style="font-family:var(--font-mono);font-size:0.7rem;line-height:1.6;color:var(--fg-dim);background:var(--paper);border:1px solid var(--fg-faint);border-radius:10px;padding:1.5rem;">
+    <div style="font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;">Generator system prompt (excerpt)</div>
+    <div style="color:var(--fg);">You are OnboardAI, an assistant grounded in the retrieved context below.</div>
+    <div style="margin-top:0.5rem;">Rules:</div>
+    <div style="margin-left:0.5rem;">
+      <div>→ Answer <span style="color:var(--accent);">only</span> using the provided context.</div>
+      <div>→ Cite every claim inline as <span style="color:var(--accent);">Source N</span>.</div>
+      <div>→ If the context does not contain the answer, say so plainly.</div>
+      <div>→ Preserve numbered lists, links, and structure from the source.</div>
+    </div>
+    <div style="margin-top:0.75rem;color:var(--fg-dim);">// Retrieved chunks: top-5, filtered to cosine ≥ 0.3</div>
+    <div style="color:var(--fg-dim);">// Conversation history: last 5 turns</div>
+  </div>
+</section>
+
+<!-- ─────────────── OUTCOMES ─────────────── -->
+<section class="section">
+  <div class="section__eyebrow">Outcome</div>
+  <h2 class="section__title">Shipped.</h2>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi__value">3</div>
+      <div class="kpi__label">Pre-loaded KBs</div>
+      <div class="kpi__sub">HR · Tax · Dev docs</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">3,279</div>
+      <div class="kpi__label">Chunks indexed</div>
+      <div class="kpi__sub">Across three corpora</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">~$0.50</div>
+      <div class="kpi__label">Monthly run cost</div>
+      <div class="kpi__sub">Vercel + Render + OpenAI</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">4</div>
+      <div class="kpi__label">API endpoints</div>
+      <div class="kpi__sub">Total backend surface</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── FOOTER / NEXT ─────────────── -->
+<section class="footer-cta">
+  <h2 class="footer-cta__title">Try the live app.</h2>
+  <div class="footer-cta__actions">
+    <a href="https://onboard-ai-gold.vercel.app/" target="_blank" rel="noopener" class="pill pill--dark">Launch <span class="chev">↗</span></a>
+    <a href="../Portfolio.html#contact" class="pill pill--ghost">Contact <span class="chev">→</span></a>
+  </div>
+</section>
+
+<footer class="legal">
+  <span>© 2026 · Dean Eyolfson</span>
+  <span><a href="../Portfolio.html">← Back to portfolio</a></span>
+</footer>
+
+<script>
+  // Reveal-on-scroll for sections
+  (function(){
+    const els = document.querySelectorAll('.moment, .moment-shot, .split, .section, .kpi-row, .callout, .context-card');
+    els.forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(16px)';
+      el.style.transition = 'opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)';
+    });
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => {
+            e.target.style.opacity = '1';
+            e.target.style.transform = 'translateY(0)';
+          }, i * 30);
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(el => obs.observe(el));
+  })();
+</script>
+</body>
+</html>

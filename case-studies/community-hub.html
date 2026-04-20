@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Hub — Case Study · Dean Eyolfson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_case.css">
+<style>
+  /* ─── Notebook palette ─── */
+  :root {
+    --nb-paper: #fbf8f1;
+    --nb-ink:   #15120f;
+    --nb-muted: rgba(21,18,15,0.55);
+    --nb-faint: rgba(21,18,15,0.10);
+    --nb-code-bg: #1a1714;
+    --nb-code-fg: #e6e1d8;
+    --nb-prompt: #c14a1f;
+    --nb-out-bar: #d4a84b;
+
+    /* chart palette — shared across the page */
+    --c-coffee:     #c14a1f;   /* terracotta */
+    --c-bar:        #1f4a3d;   /* deep forest */
+    --c-maker:      #d4a84b;   /* gold */
+    --c-event:      #7a8c6e;   /* sage */
+    --c-gallery:    #8c6e8c;   /* dusty plum */
+  }
+
+  /* ═══ HERO split: title + mini-notebook preview ═══ */
+  .hero-split {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 8rem var(--edge) 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 4rem;
+    align-items: end;
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .hero-split__stage {
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 520px;
+  }
+  .hero-split__stage::before {
+    content:'';
+    position: absolute;
+    inset: -4rem -2rem 0 -2rem;
+    background:
+      radial-gradient(55% 50% at 65% 45%, rgba(193,74,31,0.10), transparent 70%),
+      radial-gradient(45% 55% at 20% 80%, rgba(31,74,61,0.08), transparent 70%);
+    z-index: 0;
+  }
+
+  /* ═══ Notebook mockup (pervasive throughout the page) ═══ */
+  .nb {
+    position: relative;
+    width: 100%;
+    background: var(--nb-paper);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(21,18,15,0.04),
+      0 30px 80px -20px rgba(21,18,15,0.32),
+      0 10px 30px -10px rgba(21,18,15,0.16),
+      inset 0 0 0 1px rgba(21,18,15,0.08);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #2d2d2d;
+  }
+  .nb__chrome {
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 0.8rem;
+    background: #edeae4;
+    border-bottom: 1px solid rgba(21,18,15,0.08);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+  }
+  .nb__chrome .dot { width: 10px; height: 10px; border-radius: 999px; }
+  .nb__chrome .dot:nth-child(1) { background: #e48d58; }
+  .nb__chrome .dot:nth-child(2) { background: #d4a84b; }
+  .nb__chrome .dot:nth-child(3) { background: #7a8c6e; }
+  .nb__chrome .url {
+    margin-left: 0.65rem;
+    color: rgba(21,18,15,0.42);
+  }
+  .nb__chrome .kernel {
+    margin-left: auto;
+    color: rgba(21,18,15,0.4);
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .nb__chrome .kernel::before {
+    content:''; width: 6px; height: 6px; border-radius: 999px;
+    background: #7a8c6e;
+    box-shadow: 0 0 6px rgba(122,140,110,0.55);
+  }
+
+  .nb__body { padding: 0.6rem 0.8rem 1rem; }
+
+  /* a single cell */
+  .nb-cell { position: relative; margin: 0.55rem 0; }
+  .nb-cell__prompt {
+    position: absolute;
+    left: 0.2rem;
+    top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.05em;
+    color: var(--nb-muted);
+  }
+  .nb-cell__prompt.in { color: var(--nb-prompt); }
+  .nb-cell__prompt.out { color: rgba(21,18,15,0.32); }
+
+  .nb-code, .nb-md, .nb-out {
+    border: 1px solid var(--nb-faint);
+    border-radius: 6px;
+    margin-left: 3.2rem;
+    overflow: hidden;
+  }
+  .nb-md {
+    padding: 0.65rem 0.85rem;
+    background: transparent;
+    border-color: transparent;
+  }
+  .nb-md h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: -0.01em;
+    color: var(--nb-ink);
+    margin-bottom: 0.2rem;
+  }
+  .nb-md p {
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #3a3632;
+  }
+  .nb-md p + p { margin-top: 0.3rem; }
+
+  .nb-code {
+    background: var(--nb-code-bg);
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    line-height: 1.65;
+    color: var(--nb-code-fg);
+    overflow-x: auto;
+  }
+  .nb-code .cm { color: #8a8680; font-style: italic; }
+  .nb-code .kw { color: #c074a5; }
+  .nb-code .fn { color: #d4a84b; }
+  .nb-code .st { color: #9ab87a; }
+  .nb-code .nu { color: #e48d58; }
+  .nb-code .op { color: #b8b3a8; }
+  .nb-code .self { color: #7aa8d0; }
+
+  .nb-out {
+    background: #fff;
+    border-color: rgba(21,18,15,0.08);
+    border-left: 3px solid var(--nb-out-bar);
+    padding: 0.65rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    line-height: 1.55;
+    color: #3a3632;
+    white-space: pre-wrap;
+  }
+  .nb-out--figure { padding: 0.75rem; }
+  .nb-out b { color: var(--nb-ink); font-weight: 600; }
+  .nb-out .dim { color: var(--nb-muted); }
+
+  /* A "chart" area inside an output — SVG goes here */
+  .nb-chart { width: 100%; height: auto; display: block; }
+
+  /* Data table */
+  .nb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: #3a3632;
+  }
+  .nb-table th, .nb-table td {
+    padding: 4px 10px;
+    text-align: left;
+    border-bottom: 1px dashed rgba(21,18,15,0.10);
+  }
+  .nb-table th {
+    font-weight: 500;
+    color: var(--nb-muted);
+    border-bottom: 1px solid rgba(21,18,15,0.22);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 8px;
+  }
+  .nb-table td.num { text-align: right; color: var(--nb-ink); }
+  .nb-table tr:last-child td { border-bottom: 0; }
+  .nb-table tr.total td { border-top: 2px solid var(--nb-ink); font-weight: 600; color: var(--nb-ink); padding-top: 6px; }
+
+  .hero-split__stage .nb {
+    transform: perspective(1800px) rotateY(-6deg) rotateX(2deg);
+    transform-origin: center right;
+    max-width: 640px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ═══ Moment sections (reused from onboardai) ═══ */
+  .moment {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem var(--edge) 1rem;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+    align-items: baseline;
+  }
+  .moment__num {
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .moment__num::before {
+    content:'';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.6rem;
+  }
+  .moment h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 0.8rem;
+  }
+  .moment h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .moment p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--fg-dim);
+    max-width: 54ch;
+  }
+  .moment p + p { margin-top: 0.7rem; }
+  .moment-shot {
+    max-width: 1100px;
+    margin: 1.5rem auto 3rem;
+    padding: 0 var(--edge);
+  }
+
+  /* Part divider — big orienting block between the two halves */
+  .part {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6rem var(--edge) 3rem;
+  }
+  .part__tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+  .part__tag::before {
+    content:''; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 2px;
+    transform: rotate(45deg);
+    display: inline-block;
+  }
+  .part__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(2rem, 5vw, 3.75rem);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    max-width: 22ch;
+  }
+  .part__title em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .part__lede {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--fg-dim);
+    max-width: 55ch;
+  }
+
+  /* Big "pull quote / thesis" band */
+  .thesis {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 4rem var(--edge);
+    border-top: 1px solid var(--fg-faint);
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .thesis blockquote {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    max-width: 42ch;
+  }
+  .thesis blockquote em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .thesis cite {
+    display: block;
+    margin-top: 1.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    font-style: normal;
+  }
+
+  /* Funnel — full-width chart card */
+  .funnel {
+    background: var(--paper);
+    border: 1px solid var(--fg-faint);
+    border-radius: 12px;
+    padding: 1.75rem 1.75rem 1.4rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .funnel__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 1.2rem;
+  }
+  .funnel__head b { color: var(--accent); font-weight: 500; }
+  .funnel__rows {
+    display: flex; flex-direction: column; gap: 0.55rem;
+  }
+  .funnel__row {
+    display: grid;
+    grid-template-columns: 220px 1fr 120px 70px;
+    gap: 1rem;
+    align-items: center;
+  }
+  .funnel__label {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--fg);
+  }
+  .funnel__label small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-top: 0.2rem;
+    font-weight: 400;
+  }
+  .funnel__bar {
+    height: 30px;
+    background: var(--fg-faint);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .funnel__bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4a84b);
+    border-radius: 4px;
+  }
+  .funnel__count {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--fg);
+    text-align: right;
+  }
+  .funnel__drop {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--fg-dim);
+    text-align: right;
+  }
+  .funnel__drop b { color: var(--accent); font-weight: 500; }
+
+  /* LTV by membership tier — stacked (spend + membership) */
+  .ltv-bars {
+    background: #0f1216;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem 1.6rem;
+    color: #e6e1d8;
+  }
+  .ltv-bars__head {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-3);
+    margin-bottom: 0.35rem;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .ltv-bars__head .sub { color: rgba(212,168,75,0.5); }
+  .ltv-bars__caption {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: rgba(230,225,216,0.5);
+    margin-bottom: 1.5rem;
+  }
+  .ltv-bars__legend {
+    display: flex; gap: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(230,225,216,0.55);
+    margin-bottom: 1rem;
+  }
+  .ltv-bars__legend i {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: 0.45rem;
+    vertical-align: -1px;
+  }
+  .ltv-bars__legend .sw-spend { background: var(--accent-3); }
+  .ltv-bars__legend .sw-mem { background: var(--accent); }
+  .ltv-bars__legend .sw-none { background: rgba(230,225,216,0.22); }
+
+  .ltv-bars__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 34px repeat(4, 1fr);
+    gap: 0 1.25rem;
+    align-items: end;
+    height: 300px;
+    padding: 0.25rem 0 0;
+  }
+  /* y-axis */
+  .ltv-bars__axis {
+    position: relative;
+    height: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    color: rgba(230,225,216,0.4);
+    letter-spacing: 0.08em;
+  }
+  .ltv-bars__axis span {
+    position: absolute;
+    right: 8px;
+    transform: translateY(50%);
+    white-space: nowrap;
+  }
+  .ltv-bars__gridlines {
+    position: absolute;
+    inset: 0;
+    grid-column: 2 / -1;
+    pointer-events: none;
+  }
+  .ltv-bars__gridlines::before,
+  .ltv-bars__gridlines::after,
+  .ltv-bars__gridlines span {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: rgba(230,225,216,0.06);
+  }
+  .ltv-bars__gridlines::before { bottom: 0; background: rgba(230,225,216,0.2); }
+  .ltv-bars__gridlines::after  { bottom: 50%; }
+  .ltv-bars__gridlines span:nth-child(1) { bottom: 25%; }
+  .ltv-bars__gridlines span:nth-child(2) { bottom: 75%; }
+  .ltv-bars__gridlines span:nth-child(3) { bottom: 100%; }
+
+  .ltv-bars__col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .ltv-bars__val {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.25rem;
+    color: #f6efe2;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin-bottom: 0.4rem;
+    line-height: 1;
+  }
+  .ltv-bars__val em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent-3);
+    font-size: 0.75em;
+    margin-right: 1px;
+  }
+  .ltv-bars__stack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-radius: 3px 3px 0 0;
+    overflow: hidden;
+  }
+  .ltv-bars__seg {
+    width: 100%;
+    min-height: 2px;
+    transition: filter .3s;
+  }
+  .ltv-bars__seg--mem {
+    background: linear-gradient(180deg, var(--accent) 0%, #e08a5f 100%);
+    border-bottom: 1px solid rgba(15,18,22,0.55);
+  }
+  .ltv-bars__seg--spend {
+    background: linear-gradient(180deg, var(--accent-3) 0%, #b8903f 100%);
+  }
+  .ltv-bars__seg--none {
+    background: rgba(230,225,216,0.18);
+  }
+  .ltv-bars__seg-lbl {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    color: #15120f;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    text-shadow: 0 0 0 transparent;
+    white-space: nowrap;
+  }
+  .ltv-bars__seg-lbl.on-dim { color: rgba(230,225,216,0.65); }
+  .ltv-bars__name {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(230,225,216,0.55);
+    margin-top: 0.9rem;
+    text-align: center;
+    line-height: 1.35;
+  }
+  .ltv-bars__name b {
+    color: #f6efe2;
+    font-weight: 500;
+    display: block;
+    font-size: 0.72rem;
+    margin-bottom: 0.25rem;
+  }
+  .ltv-bars__name .meta {
+    display: block;
+    font-size: 0.56rem;
+    color: rgba(230,225,216,0.4);
+    letter-spacing: 0.12em;
+    margin-top: 0.2rem;
+  }
+
+  /* Lift callout */
+  .ltv-bars__lift {
+    margin-top: 1.5rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed rgba(230,225,216,0.14);
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(230,225,216,0.55);
+  }
+  .ltv-bars__lift strong {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--accent);
+  }
+
+  /* Architecture-style stack diagram (data pipeline) */
+  .pipeline {
+    background: #0f1216;
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    margin-top: 1rem;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.04),
+      0 24px 60px -30px rgba(0,0,0,0.55);
+  }
+  .pipeline__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .pipeline__head span:first-child { color: var(--accent-3); }
+  .pipeline__head span:last-child  { color: rgba(212,168,75,0.45); }
+  .pipeline__svg { width: 100%; height: auto; display: block; }
+
+  /* Insights 3-col */
+  .insights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--fg-faint);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0 2rem;
+  }
+  .insights__cell {
+    background: var(--paper);
+    padding: 1.5rem;
+  }
+  .insights__cell .lbl {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.7rem;
+  }
+  .insights__cell .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.9rem;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    line-height: 1;
+    margin-bottom: 0.6rem;
+  }
+  .insights__cell .big em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .insights__cell p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--fg-dim);
+  }
+
+  /* Journey timeline (Part 2 moment) */
+  .journey {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: var(--fg);
+  }
+  .journey__head {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--fg);
+    padding-bottom: 0.7rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .journey__head small {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    display: block;
+    margin-top: 0.2rem;
+  }
+  .journey__row {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    color: var(--fg-dim);
+  }
+  .journey__row .d { color: var(--accent); }
+  .journey__row .a { color: var(--fg); }
+  .journey__row .v { text-align: right; color: var(--fg); }
+  .journey__total {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 2px solid var(--fg);
+    display: flex; justify-content: space-between;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+  .journey__total em { font-family: var(--font-serif); font-style: italic; color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .hero-split { grid-template-columns: 1fr; padding-top: 6rem; gap: 2rem; }
+    .hero-split__stage { min-height: 320px; }
+    .hero-split__stage .nb { transform: none; }
+    .moment { grid-template-columns: 1fr; gap: 1rem; }
+    .funnel__row { grid-template-columns: 1fr; gap: 0.35rem; }
+    .funnel__count, .funnel__drop { text-align: left; }
+    .insights { grid-template-columns: 1fr; }
+    .ltv-bars__grid { height: 220px; grid-template-columns: 28px repeat(4,1fr); gap: 0 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<a class="back-nav" href="../Portfolio.html#work">
+  <span class="arrow">←</span> Back to Portfolio
+</a>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section class="hero-split">
+  <div>
+    <div class="hero__eyebrow">
+      <span class="dot"></span>
+      <span>Case 03</span>
+      <span style="opacity:.4">/</span>
+      <span>2024</span>
+    </div>
+    <h1 class="hero__title">A coffee shop, measured like a <em>website.</em></h1>
+    <p class="hero__summary">
+      A group was opening a community space — a coffee shop, a bar, a makerspace, and a small gallery, all under one roof. They needed to prove to the city it would be worth a $2M grant, and then actually run the place once it opened. I built two analyses: one that projected what the space would be worth to the neighborhood, and one that tracked individual customers the way a website tracks users. The grant cleared. The tools still run the business today.
+    </p>
+    <div class="hero__tags">
+      <span class="hero__tag">Data Analysis</span>
+      <span class="hero__tag">Python</span>
+      <span class="hero__tag">Economic Modeling</span>
+      <span class="hero__tag">Customer Analytics</span>
+    </div>
+    <div class="hero__meta">
+      <div class="hero__meta-cell"><span class="k">Role</span><span class="v">Lead Analyst</span></div>
+      <div class="hero__meta-cell"><span class="k">Year</span><span class="v">2024</span></div>
+      <div class="hero__meta-cell"><span class="k">Outcome</span><span class="v">$2M grant secured</span></div>
+      <div class="hero__meta-cell"><span class="k">Read time</span><span class="v">~6 minutes</span></div>
+    </div>
+  </div>
+
+  <!-- Hero mini-notebook -->
+  <div class="hero-split__stage">
+    <div class="nb">
+      <div class="nb__chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">economic_impact_demo.ipynb</span>
+        <span class="kernel">Python 3.11 · idle</span>
+      </div>
+      <div class="nb__body">
+        <div class="nb-cell">
+          <span class="nb-cell__prompt in">In [2]:</span>
+          <div class="nb-code"><span class="cm"># Aggregate 12-month projection across all four venues</span>
+<span class="kw">from</span> src.impact <span class="kw">import</span> build_forecast, rims_ii_multiplier
+forecast <span class="op">=</span> build_forecast(venues<span class="op">=</span>VENUES, scenario<span class="op">=</span><span class="st">'base'</span>)
+forecast.summary()</div>
+        </div>
+        <div class="nb-cell">
+          <span class="nb-cell__prompt out">Out[2]:</span>
+          <div class="nb-out">
+<b>ANNUAL IMPACT SUMMARY · Year 1 (base case)</b>
+────────────────────────────────────────────
+Annual visitors .................  <b>75,500</b>
+Direct FTE jobs .................  <b>19.0</b>
+Jobs supported (×1.4) ...........  <b>26.6</b>
+Annual revenue ..................  <b>$1,035,920</b>
+Economic output (×1.8) ..........  <b>$1,864,656</b>
+Sales tax to city ...............  <b>$52,719</b>
+<span class="dim">────────────────────────────────────────────
+[model ready — grant package exports to PDF]</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── THESIS ─────────────── -->
+<section class="thesis">
+  <blockquote>
+    The thesis, in one line: <em>treat a building like a product.</em> Count every visit, follow every regular, and the math of why someone walks in — and whether they come back — stops being a guess.
+  </blockquote>
+  <cite>— Starting point</cite>
+</section>
+
+<!-- ─────────────── CONTEXT / WHAT & WHY ─────────────── -->
+<section class="section">
+  <div class="section__eyebrow">What this is</div>
+  <h2 class="section__title">Two questions, answered in <em>plain numbers.</em></h2>
+  <div class="context-grid">
+    <div class="context-card">
+      <div class="context-card__label">The situation</div>
+      <div class="context-card__title">Two empty buildings, a big idea, and a skeptical city.</div>
+      <p class="context-card__body">The team was turning two vacant buildings into a community space with four businesses inside. To unlock a $2M city grant, they had to show — on paper, before opening day — that the space would bring real jobs, visitors, and tax revenue to the neighborhood.</p>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Question 1 · the city</div>
+      <div class="context-card__title">“What will this place be <i>worth</i> to the neighborhood?”</div>
+      <p class="context-card__body">Visitors per year. Jobs created. Sales tax generated. A five-year revenue projection. The kind of numbers a grant committee can defend in a public meeting.</p>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Question 2 · the operator</div>
+      <div class="context-card__title">“Once we're open, who's actually <i>coming back</i>?”</div>
+      <p class="context-card__body">A good bakery knows its regulars. A good website knows its users. I gave the operators the same thing: who walks in, how often they return, what they spend, and which ones are worth chasing for a membership.</p>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">How it's done</div>
+      <div class="context-card__title">Two documents, read top to bottom.</div>
+      <p class="context-card__body">Both analyses live in <b>Jupyter notebooks</b> — working documents that mix written explanation with live calculations, so every number on the page can be traced back to the assumption that produced it. Nothing is hidden in a spreadsheet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How to read this page ─── -->
+<section class="section section--narrow prose">
+  <div class="section__eyebrow">How this page is laid out</div>
+  <h2 class="section__title">A guided tour, in <em>two halves.</em></h2>
+  <ol>
+    <li><strong>Part 1 — the grant case.</strong> We start with basic assumptions (how big is the coffee shop, what does a drink cost), simulate a year of foot traffic, then turn those visits into revenue, jobs, and tax dollars. Ends with a five-year projection.</li>
+    <li><strong>Part 2 — the customer view.</strong> Once the doors are open, we shift to individual customers. How to identify them, what a “funnel” looks like for a real-world venue, and why turning a regular into a member is worth roughly <b>7.5×</b> more than keeping them casual.</li>
+    <li><strong>Part 3 — how it all connects.</strong> A simple diagram of the plumbing: the WiFi sign-in, the register, and the membership list all feed one unified picture of each customer.</li>
+  </ol>
+  <p class="prose__caption">No prior data experience required. Technical bits stay in boxes; the story is in the paragraphs around them.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PART 1 — AGGREGATE IMPACT (economic_impact_demo.ipynb)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="part">
+  <span class="part__tag">Part 1 · the grant case</span>
+  <h2 class="part__title">What will the space be <em>worth</em>?</h2>
+  <p class="part__lede">
+    The grant committee doesn't care about vibes. They want to know, in dollars and jobs, what this place will do for the neighborhood. To answer honestly, we build the number up from its smallest pieces — the size of each room, the price of a latte — instead of picking a hopeful total and working backwards.
+  </p>
+</section>
+
+<!-- ─── Moment 1.1 — Setup / assumptions ─── -->
+<div class="moment">
+  <div class="moment__num">Step 01 · The inputs</div>
+  <div>
+    <h3>Start with four <em>honest</em> facts about each room.</h3>
+    <p>Before any projection, we list what we actually know. How many square feet is the coffee shop? How many seats does the bar have? What does the average customer spend? These aren't guesses — they come from the lease, the floor plan, and comparable venues nearby.</p>
+    <p>Every chart later in this analysis is built from the four rows shown below. If the coffee shop ends up smaller than planned, we change one number here and every downstream result updates automatically. That's the whole point: no hidden math.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">economic_impact_demo.ipynb — §1 Space Configuration</span>
+      <span class="kernel">idle</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt">[ md ]</span>
+        <div class="nb-md">
+          <h4>1. Space Configuration &amp; Assumptions</h4>
+          <p>Operating assumptions per venue. Edit here; all sections downstream re-derive.</p>
+        </div>
+      </div>
+      <div class="nb-cell">
+        <span class="nb-cell__prompt in">In [3]:</span>
+        <div class="nb-code">SPACE_CONFIG <span class="op">=</span> {
+    <span class="st">'coffee_shop'</span>: {<span class="st">'sq_ft'</span>: <span class="nu">2000</span>, <span class="st">'capacity'</span>: <span class="nu">45</span>, <span class="st">'avg_ticket'</span>: <span class="nu">8.50</span>, <span class="st">'conversion'</span>: <span class="nu">0.70</span>},
+    <span class="st">'bar'</span>:         {<span class="st">'sq_ft'</span>: <span class="nu">2800</span>, <span class="st">'capacity'</span>: <span class="nu">95</span>, <span class="st">'avg_ticket'</span>: <span class="nu">18.00</span>, <span class="st">'conversion'</span>: <span class="nu">0.82</span>},
+    <span class="st">'makerspace'</span>:  {<span class="st">'sq_ft'</span>: <span class="nu">2200</span>, <span class="st">'capacity'</span>: <span class="nu">30</span>, <span class="st">'monthly_fee'</span>: <span class="nu">95.00</span>, <span class="st">'lease_rev'</span>: <span class="nu">90_000</span>},
+    <span class="st">'gallery'</span>:     {<span class="st">'sq_ft'</span>:  <span class="nu">700</span>, <span class="st">'commission'</span>: <span class="nu">0.30</span>, <span class="st">'events_yr'</span>: <span class="nu">12</span>},
+}
+COGS, LABOR, RENT, OTHER <span class="op">=</span> <span class="nu">0.30</span>, <span class="nu">0.35</span>, <span class="nu">0.15</span>, <span class="nu">0.10</span>    <span class="cm"># ~10% EBITDA</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 1.2 — Traffic simulation ─── -->
+<div class="moment">
+  <div class="moment__num">Step 02 · A year of foot traffic</div>
+  <div>
+    <h3>What does a <em>typical</em> year at the door look like?</h3>
+    <p>Next, we simulate an entire year of daily visits. We build in the patterns every real venue has: coffee peaks on weekend mornings, the bar fills up Thursday through Saturday night, the makerspace stays small and steady. We also factor in a slow opening ramp — no one is at capacity on day one.</p>
+    <p>The chart below is the result. Each line is one venue over 12 months, smoothed so the shape is easy to read. It's not a prediction of one specific Tuesday — it's a reasonable picture of a normal year.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">§2 Simulated Traffic Data — Cell 6</span>
+      <span class="kernel">executed · 1.2s</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt in">In [6]:</span>
+        <div class="nb-code"><span class="kw">for</span> venue, color <span class="kw">in</span> [(<span class="st">'coffee_shop'</span>, C_COFFEE), (<span class="st">'bar'</span>, C_BAR), (<span class="st">'makerspace'</span>, C_MAKER)]:
+    df <span class="op">=</span> all_traffic[all_traffic.venue <span class="op">==</span> venue]
+    ax.plot(df.date, df.visitors.rolling(<span class="nu">7</span>).mean(), color<span class="op">=</span>color, linewidth<span class="op">=</span><span class="nu">1.8</span>)
+ax.set_title(<span class="st">'Daily Visitors · 7-day rolling avg'</span>)</div>
+      </div>
+      <div class="nb-cell">
+        <span class="nb-cell__prompt out">Out[6]:</span>
+        <div class="nb-out nb-out--figure">
+          <!-- Traffic SVG chart -->
+          <svg class="nb-chart" viewBox="0 0 760 240" preserveAspectRatio="none" aria-label="Daily visitors chart">
+            <defs>
+              <linearGradient id="coffee-area" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#c14a1f" stop-opacity="0.25"/>
+                <stop offset="1" stop-color="#c14a1f" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="bar-area" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#1f4a3d" stop-opacity="0.22"/>
+                <stop offset="1" stop-color="#1f4a3d" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- grid -->
+            <g stroke="rgba(21,18,15,0.08)" stroke-width="1">
+              <line x1="40" y1="30"  x2="740" y2="30"/>
+              <line x1="40" y1="80"  x2="740" y2="80"/>
+              <line x1="40" y1="130" x2="740" y2="130"/>
+              <line x1="40" y1="180" x2="740" y2="180"/>
+            </g>
+            <!-- y-axis labels -->
+            <g font-family="JetBrains Mono, monospace" font-size="8" fill="rgba(21,18,15,0.5)">
+              <text x="34" y="33" text-anchor="end">300</text>
+              <text x="34" y="83" text-anchor="end">200</text>
+              <text x="34" y="133" text-anchor="end">100</text>
+              <text x="34" y="183" text-anchor="end">0</text>
+            </g>
+            <!-- x-axis labels (months) -->
+            <g font-family="JetBrains Mono, monospace" font-size="8" fill="rgba(21,18,15,0.5)">
+              <text x="60"  y="215">Jan</text>
+              <text x="120" y="215">Feb</text>
+              <text x="180" y="215">Mar</text>
+              <text x="240" y="215">Apr</text>
+              <text x="300" y="215">May</text>
+              <text x="360" y="215">Jun</text>
+              <text x="420" y="215">Jul</text>
+              <text x="480" y="215">Aug</text>
+              <text x="540" y="215">Sep</text>
+              <text x="600" y="215">Oct</text>
+              <text x="660" y="215">Nov</text>
+              <text x="720" y="215">Dec</text>
+            </g>
+
+            <!-- Coffee area -->
+            <path d="M40,165 L100,150 L160,130 L220,108 L280,90 L340,76 L400,60 L460,58 L520,66 L580,78 L640,95 L700,88 L740,82 L740,180 L40,180 Z"
+                  fill="url(#coffee-area)"/>
+            <!-- Coffee line (top venue) -->
+            <path d="M40,165 L100,150 L160,130 L220,108 L280,90 L340,76 L400,60 L460,58 L520,66 L580,78 L640,95 L700,88 L740,82"
+                  fill="none" stroke="#c14a1f" stroke-width="1.8" stroke-linejoin="round"/>
+
+            <!-- Bar area (thursday-sat spikes) -->
+            <path d="M40,180 L60,176 L80,168 L100,160 L120,152 L140,158 L160,148 L180,142 L200,150 L220,138 L240,130 L260,140 L280,125 L300,118 L320,128 L340,112 L360,104 L380,116 L400,96 L420,88 L440,100 L460,82 L480,76 L500,90 L520,80 L540,74 L560,86 L580,78 L600,82 L620,96 L640,90 L660,102 L680,96 L700,108 L720,114 L740,120 L740,180 L40,180 Z"
+                  fill="url(#bar-area)"/>
+            <path d="M40,180 L60,176 L80,168 L100,160 L120,152 L140,158 L160,148 L180,142 L200,150 L220,138 L240,130 L260,140 L280,125 L300,118 L320,128 L340,112 L360,104 L380,116 L400,96 L420,88 L440,100 L460,82 L480,76 L500,90 L520,80 L540,74 L560,86 L580,78 L600,82 L620,96 L640,90 L660,102 L680,96 L700,108 L720,114 L740,120"
+                  fill="none" stroke="#1f4a3d" stroke-width="1.6" stroke-linejoin="round"/>
+
+            <!-- Makerspace flat line -->
+            <path d="M40,172 L120,170 L200,168 L280,166 L360,165 L440,164 L520,163 L600,163 L680,162 L740,162"
+                  fill="none" stroke="#d4a84b" stroke-width="1.4" stroke-dasharray="4 3"/>
+
+            <!-- Legend -->
+            <g font-family="JetBrains Mono, monospace" font-size="9">
+              <rect x="440" y="5" width="12" height="2" fill="#c14a1f"/>
+              <text x="458" y="9" fill="#3a3632">coffee</text>
+              <rect x="500" y="5" width="12" height="2" fill="#1f4a3d"/>
+              <text x="518" y="9" fill="#3a3632">bar</text>
+              <rect x="552" y="5" width="12" height="2" fill="#d4a84b"/>
+              <text x="570" y="9" fill="#3a3632">makerspace</text>
+            </g>
+            <text x="40" y="14" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#15120f">Daily Visitors — 7-day rolling average</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 1.3 — Visitor funnel ─── -->
+<div class="moment">
+  <div class="moment__num">Step 03 · From a flyer to a regular</div>
+  <div>
+    <h3>How a <em>stranger</em> becomes a customer.</h3>
+    <p>Not everyone who sees an ad walks in. Not everyone who walks in buys something. Not everyone who buys something comes back. The chart below tracks that dropout, step by step — what marketers call a <i>funnel</i>.</p>
+    <p>Read it top to bottom: 500,000 people see an ad on their phone; 75,000 click through or visit the website; 19,600 actually walk in the door; and by the end of the year, about <b>4,939</b> have become repeat visitors. Each drop-off is a lever the operator can pull — a better sign out front, a free first drink, a reason to return next week.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="funnel">
+    <div class="funnel__head">
+      <span>Visitor Funnel · Year 1 projection</span>
+      <span><b>0.99%</b> end-to-end conversion</span>
+    </div>
+    <div class="funnel__rows">
+      <div class="funnel__row">
+        <div class="funnel__label">Awareness<small>Ad Impressions</small></div>
+        <div class="funnel__bar"><span style="width:100%"></span></div>
+        <div class="funnel__count">500,000</div>
+        <div class="funnel__drop">—</div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Interest<small>Website / Social</small></div>
+        <div class="funnel__bar"><span style="width:15%"></span></div>
+        <div class="funnel__count">75,000</div>
+        <div class="funnel__drop"><b>↓ 85%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Visit<small>Foot Traffic</small></div>
+        <div class="funnel__bar"><span style="width:3.9%"></span></div>
+        <div class="funnel__count">19,600</div>
+        <div class="funnel__drop"><b>↓ 74%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Engagement<small>Dwell &gt; 30 min</small></div>
+        <div class="funnel__bar"><span style="width:2.35%"></span></div>
+        <div class="funnel__count">11,760</div>
+        <div class="funnel__drop"><b>↓ 40%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Conversion<small>Purchase / Signup</small></div>
+        <div class="funnel__bar"><span style="width:1.65%"></span></div>
+        <div class="funnel__count">8,232</div>
+        <div class="funnel__drop"><b>↓ 30%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Retention<small>Return within 90 days</small></div>
+        <div class="funnel__bar"><span style="width:0.99%"></span></div>
+        <div class="funnel__count">4,939</div>
+        <div class="funnel__drop"><b>↓ 40%</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 1.4 — Economic impact table ─── -->
+<div class="moment">
+  <div class="moment__num">Step 04 · Turning visits into dollars</div>
+  <div>
+    <h3>One million dollars of coffee and drinks, <em>roughly.</em></h3>
+    <p>Multiply visits by average ticket and you get direct revenue: about <b>$1,035,920</b> in Year 1, split across the four venues. That's the money changing hands at the register.</p>
+    <p>But the full economic picture is bigger. When the coffee shop buys beans from a local roaster, and the roaster pays a driver, and the driver buys lunch — that chain of spending is called the <i>multiplier effect</i>. The U.S. government publishes official multipliers for exactly this purpose (they call it <b>RIMS-II</b>). Applied to our direct revenue, the total economic output comes out to <b>$1.86M</b>, supporting roughly <b>27 jobs</b> and returning <b>$52,719</b> in sales tax to the city in the first year alone.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">§5 Economic Impact Model — Cell 14</span>
+      <span class="kernel">executed · 0.1s</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt in">In [14]:</span>
+        <div class="nb-code">rev <span class="op">=</span> compute_revenue(all_traffic, SPACE_CONFIG)
+impact <span class="op">=</span> rims_ii_multiplier(rev, jobs_mult<span class="op">=</span><span class="nu">1.4</span>, output_mult<span class="op">=</span><span class="nu">1.8</span>)
+impact.to_frame().style.format({<span class="st">'Value'</span>: <span class="st">'{:,.0f}'</span>})</div>
+      </div>
+      <div class="nb-cell">
+        <span class="nb-cell__prompt out">Out[14]:</span>
+        <div class="nb-out">
+          <table class="nb-table">
+            <thead><tr><th>Revenue Stream</th><th style="text-align:right">Annual</th><th style="text-align:right">Share</th></tr></thead>
+            <tbody>
+              <tr><td>Coffee Shop</td><td class="num">$262,080</td><td class="num">25%</td></tr>
+              <tr><td>Bar &amp; Beverage</td><td class="num">$337,040</td><td class="num">33%</td></tr>
+              <tr><td>Events &amp; Private Rentals</td><td class="num">$336,000</td><td class="num">32%</td></tr>
+              <tr><td>Makerspace (lease)</td><td class="num">$90,000</td><td class="num">9%</td></tr>
+              <tr><td>Art Gallery (commission)</td><td class="num">$10,800</td><td class="num">1%</td></tr>
+              <tr class="total"><td>Direct Revenue</td><td class="num">$1,035,920</td><td class="num">100%</td></tr>
+              <tr><td class="dim">× 1.8 output multiplier (RIMS-II)</td><td class="num" style="color:var(--accent)">$1,864,656</td><td class="num"></td></tr>
+              <tr><td class="dim">Direct FTE · supported (×1.4)</td><td class="num" style="color:var(--accent)">19 · 26.6</td><td class="num"></td></tr>
+              <tr><td class="dim">Sales tax to City of Denver</td><td class="num" style="color:var(--accent)">$52,719</td><td class="num"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 1.5 — 5-yr proforma ─── -->
+<div class="moment">
+  <div class="moment__num">Step 05 · What about year five?</div>
+  <div>
+    <h3>Three <em>futures</em>, not one hopeful line.</h3>
+    <p>Most business plans show a single line going up and to the right. Grant committees have seen a thousand of those, and they don't trust any of them. So instead we show three futures side by side: a cautious one (slow growth), a realistic one (the base case), and an optimistic one.</p>
+    <p>Even in the cautious version, the space clears the grant's requirements. That's the point of showing the range — the pitch doesn't depend on everything going right.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">§6 Five-Year Proforma — Cell 17</span>
+      <span class="kernel">executed · 0.4s</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt out">Out[17]:</span>
+        <div class="nb-out nb-out--figure">
+          <svg class="nb-chart" viewBox="0 0 760 260" aria-label="Five-year revenue projection">
+            <!-- grid -->
+            <g stroke="rgba(21,18,15,0.08)" stroke-width="1">
+              <line x1="60" y1="40"  x2="740" y2="40"/>
+              <line x1="60" y1="95"  x2="740" y2="95"/>
+              <line x1="60" y1="150" x2="740" y2="150"/>
+              <line x1="60" y1="205" x2="740" y2="205"/>
+            </g>
+            <g font-family="JetBrains Mono, monospace" font-size="9" fill="rgba(21,18,15,0.5)">
+              <text x="54" y="43" text-anchor="end">$1.6M</text>
+              <text x="54" y="98" text-anchor="end">$1.3M</text>
+              <text x="54" y="153" text-anchor="end">$1.1M</text>
+              <text x="54" y="208" text-anchor="end">$0.9M</text>
+            </g>
+            <g font-family="JetBrains Mono, monospace" font-size="9" fill="rgba(21,18,15,0.55)" text-anchor="middle">
+              <text x="120" y="235">Y1</text>
+              <text x="260" y="235">Y2</text>
+              <text x="400" y="235">Y3</text>
+              <text x="540" y="235">Y4</text>
+              <text x="680" y="235">Y5</text>
+            </g>
+
+            <!-- Aggressive (15%) -->
+            <path d="M120,190 L260,154 L400,108 L540,66 L680,22" fill="none" stroke="#c14a1f" stroke-width="2.2" stroke-linejoin="round"/>
+            <g fill="#c14a1f">
+              <circle cx="120" cy="190" r="3.5"/><circle cx="260" cy="154" r="3.5"/>
+              <circle cx="400" cy="108" r="3.5"/><circle cx="540" cy="66"  r="3.5"/>
+              <circle cx="680" cy="22"  r="3.5"/>
+            </g>
+
+            <!-- Base (8%) -->
+            <path d="M120,190 L260,170 L400,148 L540,124 L680,98" fill="none" stroke="#1f4a3d" stroke-width="2.2" stroke-linejoin="round"/>
+            <g fill="#1f4a3d">
+              <circle cx="120" cy="190" r="3.5"/><circle cx="260" cy="170" r="3.5"/>
+              <circle cx="400" cy="148" r="3.5"/><circle cx="540" cy="124" r="3.5"/>
+              <circle cx="680" cy="98"  r="3.5"/>
+            </g>
+
+            <!-- Conservative (3%) -->
+            <path d="M120,190 L260,182 L400,173 L540,162 L680,150" fill="none" stroke="#8a8680" stroke-width="2" stroke-dasharray="5 3" stroke-linejoin="round"/>
+            <g fill="#8a8680">
+              <circle cx="120" cy="190" r="3"/><circle cx="260" cy="182" r="3"/>
+              <circle cx="400" cy="173" r="3"/><circle cx="540" cy="162" r="3"/>
+              <circle cx="680" cy="150" r="3"/>
+            </g>
+
+            <!-- Labels -->
+            <text x="690" y="22"  font-family="Inter, sans-serif" font-size="10" fill="#c14a1f" font-weight="600">Aggressive · $6.6M</text>
+            <text x="690" y="98"  font-family="Inter, sans-serif" font-size="10" fill="#1f4a3d" font-weight="600">Base · $5.2M</text>
+            <text x="690" y="150" font-family="Inter, sans-serif" font-size="10" fill="#8a8680" font-weight="600">Conservative · $4.8M</text>
+
+            <!-- title -->
+            <text x="60" y="22" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#15120f">Revenue Projection · 5-year proforma</text>
+            <text x="60" y="35" font-family="JetBrains Mono, monospace" font-size="8" fill="rgba(21,18,15,0.5)">cumulative totals annotated</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Part 1 Callout ─── -->
+<section class="section section--narrow">
+  <div class="callout callout--sage">
+    <p><strong>Why the grant cleared —</strong> committees don't reward the biggest number. They reward the number they can defend. Every assumption was written down, every multiplier was borrowed from a federal source, and the downside case was presented alongside the upside. The one-page summary fit on a single sheet; the supporting math ran fifty more.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PART 2 — USER-LEVEL (user_ltv_analysis_clean.ipynb)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="part" style="padding-top:3rem;">
+  <span class="part__tag">Part 2 · the customer view</span>
+  <h2 class="part__title">Who's actually <em>coming back</em>?</h2>
+  <p class="part__lede">
+    Part 1 gave the grant committee the big numbers. Part 2 is for the people running the place once it opens. Instead of totals — 75,000 visitors, a million in revenue — we zoom in on <i>individual customers</i>. The goal: know your regulars the way a neighborhood bartender does, but at scale and with data.
+  </p>
+</section>
+
+<!-- ─── Moment 2.1 — User cohort ─── -->
+<div class="moment">
+  <div class="moment__num">Step 06 · Meeting the customers</div>
+  <div>
+    <h3>How a walk-in becomes a <em>name</em> in the system.</h3>
+    <p>The trick to all of this is a moment most people don't notice: the free WiFi sign-in. When a customer joins the WiFi, they give an email address. That email is the thread that ties everything together — the same email might show up on a bar tab two weeks later, or on a membership signup two months later.</p>
+    <p>To show how the analysis would work once the space was open, I simulated 5,000 fictional customers, each with a realistic mix of where they heard about the place, which venue they prefer, and how engaged they are. The table below is a peek at that roster.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">user_ltv_analysis_clean.ipynb — §1 User Journeys</span>
+      <span class="kernel">executed · 0.3s</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt in">In [3]:</span>
+        <div class="nb-code">n_users <span class="op">=</span> <span class="nu">5000</span>
+users <span class="op">=</span> pd.DataFrame({
+    <span class="st">'user_id'</span>:           <span class="fn">range</span>(<span class="nu">1</span>, n_users <span class="op">+</span> <span class="nu">1</span>),
+    <span class="st">'acquisition_source'</span>: np.random.choice(SOURCES, n_users, p<span class="op">=</span>WEIGHTS),
+    <span class="st">'home_zip'</span>:          np.random.choice(ZIPS,    n_users, p<span class="op">=</span>ZIP_W),
+    <span class="st">'engagement_score'</span>:  np.random.beta(<span class="nu">2</span>, <span class="nu">5</span>, n_users),   <span class="cm"># right-skewed</span>
+    <span class="st">'venue_affinity'</span>:    np.random.choice([<span class="st">'coffee'</span>, <span class="st">'bar'</span>, <span class="st">'both'</span>], n_users, p<span class="op">=</span>[.<span class="nu">45</span>, .<span class="nu">25</span>, .<span class="nu">30</span>]),
+})</div>
+      </div>
+      <div class="nb-cell">
+        <span class="nb-cell__prompt out">Out[3]:</span>
+        <div class="nb-out">
+          <table class="nb-table">
+            <thead><tr><th>user_id</th><th>source</th><th>zip</th><th style="text-align:right">engagement</th><th>affinity</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>social_ad</td><td>80202</td><td class="num">0.24</td><td>coffee</td></tr>
+              <tr><td>2</td><td>organic</td><td>80205</td><td class="num">0.61</td><td>both</td></tr>
+              <tr><td>3</td><td>referral</td><td>80206</td><td class="num">0.08</td><td>bar</td></tr>
+              <tr><td>4</td><td>search_ad</td><td>80204</td><td class="num">0.33</td><td>coffee</td></tr>
+              <tr><td>5</td><td>event</td><td>80211</td><td class="num">0.77</td><td>both</td></tr>
+              <tr><td class="dim">…</td><td class="dim">…</td><td class="dim">…</td><td class="dim">…</td><td class="dim">…</td></tr>
+              <tr><td>5000</td><td>organic</td><td>80203</td><td class="num">0.19</td><td>coffee</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 2.2 — Funnel ─── -->
+<div class="moment">
+  <div class="moment__num">Step 07 · From first visit to paying member</div>
+  <div>
+    <h3>Most people come back. Almost <em>none</em> sign up.</h3>
+    <p>Same idea as the funnel in Part 1 — but this time we're watching individual customers instead of crowds. The good news: <b>88%</b> of first-time visitors come back at least once. That's a healthy sign that the space itself works.</p>
+    <p>The harder news: only about <b>1%</b> actually become paying members. That sounds small, and it is — but it's also the most valuable step on the whole chart, because (as we'll see next) members are worth many times more than casual visitors. This funnel is the operator's to-do list.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="funnel">
+    <div class="funnel__head">
+      <span>User Funnel · simulated N=5,000</span>
+      <span><b>0.88%</b> Acquired → Member</span>
+    </div>
+    <div class="funnel__rows">
+      <div class="funnel__row">
+        <div class="funnel__label">Acquired<small>WiFi signup</small></div>
+        <div class="funnel__bar"><span style="width:100%"></span></div>
+        <div class="funnel__count">5,000</div>
+        <div class="funnel__drop">100%</div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Activated<small>2+ visits</small></div>
+        <div class="funnel__bar"><span style="width:88%"></span></div>
+        <div class="funnel__count">4,398</div>
+        <div class="funnel__drop"><b>↓ 12%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Engaged<small>5+ visits</small></div>
+        <div class="funnel__bar"><span style="width:52%"></span></div>
+        <div class="funnel__count">2,598</div>
+        <div class="funnel__drop"><b>↓ 41%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Multi-venue<small>coffee + bar</small></div>
+        <div class="funnel__bar"><span style="width:31%"></span></div>
+        <div class="funnel__count">1,550</div>
+        <div class="funnel__drop"><b>↓ 40%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Event attendee<small>ticketed event</small></div>
+        <div class="funnel__bar"><span style="width:4.6%"></span></div>
+        <div class="funnel__count">231</div>
+        <div class="funnel__drop"><b>↓ 85%</b></div>
+      </div>
+      <div class="funnel__row">
+        <div class="funnel__label">Converted<small>paying member</small></div>
+        <div class="funnel__bar"><span style="width:0.88%"></span></div>
+        <div class="funnel__count">44</div>
+        <div class="funnel__drop"><b>↓ 81%</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 2.3 — LTV by tier ─── -->
+<div class="moment">
+  <div class="moment__num">Step 08 · What a customer is “worth”</div>
+  <div>
+    <h3>A casual visitor: <em>$60</em>. A member: <em>$450+</em>.</h3>
+    <p>“Customer lifetime value” is a fancy term for a simple idea: how much money does one customer spend with us over the course of a year? Add up their coffees, their drinks, their event tickets, and their membership fees. That's their value.</p>
+    <p>The chart below is the most important picture in the entire project. A person who just drops in a few times is worth about <b>$60</b> a year. A person who signs up for a membership is worth <b>$450 to $550+</b> — roughly <b>seven and a half times more</b>. The entire strategy for running the space boils down to one sentence: <i>move people from the short bar on the left to the taller bars on the right.</i></p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="ltv-bars">
+    <div class="ltv-bars__head">
+      <span>Average LTV by membership tier</span>
+      <span class="sub">Simulated Year-1 cohort · n = 5,000</span>
+    </div>
+    <div class="ltv-bars__caption">LTV decomposed into <em style="color:var(--accent-3)">spend</em> and <em style="color:var(--accent)">membership revenue</em>. Y-axis in dollars.</div>
+
+    <div class="ltv-bars__legend">
+      <span><i class="sw-spend"></i>Avg spend</span>
+      <span><i class="sw-mem"></i>Membership rev</span>
+      <span><i class="sw-none"></i>Non-member (spend only)</span>
+    </div>
+
+    <!-- Bars scale against y_max = $600. Segment heights in % of 600. -->
+    <div class="ltv-bars__grid" aria-label="Bar chart: average LTV by tier">
+      <div class="ltv-bars__axis" aria-hidden="true">
+        <span style="bottom:0%">$0</span>
+        <span style="bottom:25%">$150</span>
+        <span style="bottom:50%">$300</span>
+        <span style="bottom:75%">$450</span>
+        <span style="bottom:100%">$600</span>
+      </div>
+
+      <!-- gridline scaffolding placed in bar area via absolute positioning -->
+      <div style="grid-column:2 / -1;position:relative;height:100%;" aria-hidden="true">
+        <div class="ltv-bars__gridlines"><span></span><span></span><span></span></div>
+
+        <!-- Bars laid out as an inner grid so they share the gridline backdrop -->
+        <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0 1.25rem;align-items:end;">
+
+          <!-- Non-member — LTV $60.12 -->
+          <div class="ltv-bars__col">
+            <div class="ltv-bars__val"><em>$</em>60</div>
+            <div class="ltv-bars__stack" style="height:10.0%;">
+              <div class="ltv-bars__seg ltv-bars__seg--none" style="height:100%;"></div>
+            </div>
+          </div>
+
+          <!-- Coffee Regular — spend $268.74 + mem $92.25 = $360.99 -->
+          <div class="ltv-bars__col">
+            <div class="ltv-bars__val"><em>$</em>361</div>
+            <div class="ltv-bars__stack" style="height:60.2%;">
+              <div class="ltv-bars__seg ltv-bars__seg--mem" style="height:25.6%;" title="Membership rev $92"></div>
+              <div class="ltv-bars__seg ltv-bars__seg--spend" style="height:74.4%;" title="Avg spend $269"></div>
+            </div>
+          </div>
+
+          <!-- Bar Member — spend $332.60 + mem $147.22 = $479.83 -->
+          <div class="ltv-bars__col">
+            <div class="ltv-bars__val"><em>$</em>480</div>
+            <div class="ltv-bars__stack" style="height:80.0%;">
+              <div class="ltv-bars__seg ltv-bars__seg--mem" style="height:30.7%;" title="Membership rev $147"></div>
+              <div class="ltv-bars__seg ltv-bars__seg--spend" style="height:69.3%;" title="Avg spend $333"></div>
+            </div>
+          </div>
+
+          <!-- All-Access — spend $320.02 + mem $237.33 = $557.35 -->
+          <div class="ltv-bars__col">
+            <div class="ltv-bars__val"><em>$</em>557</div>
+            <div class="ltv-bars__stack" style="height:92.9%;">
+              <div class="ltv-bars__seg ltv-bars__seg--mem" style="height:42.6%;" title="Membership rev $237"></div>
+              <div class="ltv-bars__seg ltv-bars__seg--spend" style="height:57.4%;" title="Avg spend $320"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier labels, aligned under the 4 bars -->
+    <div style="display:grid;grid-template-columns:34px repeat(4,1fr);gap:0 1.25rem;margin-top:0.25rem;">
+      <div></div>
+      <div class="ltv-bars__name"><b>Non-member</b>4,956 users<span class="meta">5.2 avg visits</span></div>
+      <div class="ltv-bars__name"><b>Coffee Regular</b>20 users<span class="meta">16.2 avg visits</span></div>
+      <div class="ltv-bars__name"><b>Bar Member</b>9 users<span class="meta">16.2 avg visits</span></div>
+      <div class="ltv-bars__name"><b>All-Access</b>15 users<span class="meta">15.8 avg visits</span></div>
+    </div>
+
+    <div class="ltv-bars__lift">
+      <span>Non-member → Coffee Regular</span>
+      <strong>6.0× LTV lift</strong>
+      <span style="opacity:.6">· $60 → $361</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 2.4 — Cross-venue insight ─── -->
+<div class="moment">
+  <div class="moment__num">Step 09 · Three findings that changed the plan</div>
+  <div>
+    <h3>What the data <em>actually</em> said.</h3>
+    <p>Once the customer view was running, three patterns jumped out immediately. Each one was specific enough to change how the team spent time and money in week one.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="insights">
+    <div class="insights__cell">
+      <div class="lbl">Insight 01 · cross-venue</div>
+      <div class="big"><em>$</em>92 vs <em>$</em>16</div>
+      <p>Multi-venue users (coffee <i>and</i> bar) have <b>5.7×</b> the LTV of single-venue users. The membership ladder is designed to pull single-venue visitors across.</p>
+    </div>
+    <div class="insights__cell">
+      <div class="lbl">Insight 02 · acquisition</div>
+      <div class="big">Events &gt; <em>Ads</em></div>
+      <p>Event attendees and organic walk-ins convert at roughly the same rate as paid — but their LTV is $3–5 higher. Community events aren't marketing spend; they're the best marketing spend.</p>
+    </div>
+    <div class="insights__cell">
+      <div class="lbl">Insight 03 · retention</div>
+      <div class="big">Visit #<em>3</em></div>
+      <p>Users who make it to their third visit become 6× more likely to convert. The first-90-days playbook is designed around pushing people past that threshold.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Moment 2.5 — Sample journey ─── -->
+<div class="moment">
+  <div class="moment__num">Step 10 · One customer, start to finish</div>
+  <div>
+    <h3>From <em>one</em> Instagram ad to $477 a year.</h3>
+    <p>All the charts up to this point are averages. To make it real, here's what one specific customer's year actually looked like, pulled from their record in the system. She saw an Instagram ad in January, came in for a latte, came back a week later with a laptop, wandered over to an art opening at the bar, and eventually bought a coffee-shop membership on Valentine's Day.</p>
+    <p>By the end of the year she'd spent <b>$477</b>. One person. One story. Multiply by a few thousand customers and you have a business.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="nb">
+    <div class="nb__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">§9 Sample User Journey — Cell 21</span>
+      <span class="kernel">executed · 0.0s</span>
+    </div>
+    <div class="nb__body">
+      <div class="nb-cell">
+        <span class="nb-cell__prompt out">Out[21]:</span>
+        <div class="nb-out nb-out--figure">
+          <div class="journey">
+            <div class="journey__head">user_id = 2847 · Coffee Regular Member<small>Acquisition: Instagram ad · Home ZIP 80205</small></div>
+            <div class="journey__row"><span class="d">Jan 15</span><span class="a">First visit · bought latte</span><span class="v">$6</span></div>
+            <div class="journey__row"><span class="d">Jan 22</span><span class="a">Return · worked 3 hrs · 2 drinks</span><span class="v">$14</span></div>
+            <div class="journey__row"><span class="d">Feb 01</span><span class="a">Art opening event · wine at bar</span><span class="v">$28</span></div>
+            <div class="journey__row"><span class="d">Feb 08</span><span class="a">Coffee visit with friend</span><span class="v">$12</span></div>
+            <div class="journey__row"><span class="d">Feb 14</span><span class="a">Joined <b style="color:var(--accent)">Coffee Regular</b> membership</span><span class="v">$15/mo</span></div>
+            <div class="journey__row"><span class="d">Feb–Dec</span><span class="a">28 additional visits · avg $9 each</span><span class="v">$252</span></div>
+            <div class="journey__row"><span class="d" style="color:var(--fg-dim)">+ prorated</span><span class="a" style="color:var(--fg-dim)">11 months of membership</span><span class="v" style="color:var(--fg-dim)">$165</span></div>
+            <div class="journey__total"><span>Year-1 LTV</span><span><em>$477</em></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── ARCHITECTURE (the stitching that makes it real) ─────────────── -->
+<div class="rule"><div class="rule__line"></div></div>
+
+<section class="section" style="max-width:1100px;">
+  <div class="section__eyebrow">Part 3 · how it works underneath</div>
+  <h2 class="section__title">The <em>plumbing</em>, in one picture.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.7;color:var(--fg-dim);max-width:52rem;">
+    None of this analysis is possible without one small trick: recognizing that the person on the WiFi, the person at the register, and the person on the membership list are often the <i>same person</i>. The diagram below shows how those three systems get stitched together with a single shared email address — and how the stitched data then flows into the two analyses you just read.
+  </p>
+
+  <figure class="pipeline" aria-label="Data pipeline architecture">
+    <div class="pipeline__head">
+      <span>Community Hub · Data Pipeline</span>
+      <span>Signal capture → identity → model</span>
+    </div>
+
+    <svg class="pipeline__svg" viewBox="0 0 1200 440" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="ar-warm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#c14a1f"/>
+        </marker>
+        <marker id="ar-cool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#7a8c6e"/>
+        </marker>
+      </defs>
+
+      <!-- column headers -->
+      <g font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="2" fill="#6b665f">
+        <text x="40"   y="30">CAPTURE</text>
+        <text x="340"  y="30">UNIFY</text>
+        <text x="640"  y="30">MODEL</text>
+        <text x="960"  y="30">USE</text>
+      </g>
+      <g stroke="#2a2520" stroke-width="1">
+        <line x1="300"  y1="46" x2="300"  y2="410"/>
+        <line x1="600"  y1="46" x2="600"  y2="410"/>
+        <line x1="920"  y1="46" x2="920"  y2="410"/>
+      </g>
+
+      <!-- CAPTURE column: 3 sources -->
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#e6e1d8">
+        <rect x="40" y="70"  width="240" height="70" rx="8" fill="#23272f" stroke="#3a4150"/>
+        <text x="55" y="93" fill="#f0a030">WiFi captive portal</text>
+        <text x="55" y="110" font-size="9" fill="#8a8680">email + ZIP · device ID</text>
+        <text x="55" y="125" font-size="9" fill="#8a8680">dwell time · visit freq</text>
+
+        <rect x="40" y="165" width="240" height="70" rx="8" fill="#23272f" stroke="#3a4150"/>
+        <text x="55" y="188" fill="#f0a030">POS · Toast</text>
+        <text x="55" y="205" font-size="9" fill="#8a8680">receipt email capture</text>
+        <text x="55" y="220" font-size="9" fill="#8a8680">avg ticket · product mix</text>
+
+        <rect x="40" y="260" width="240" height="70" rx="8" fill="#23272f" stroke="#3a4150"/>
+        <text x="55" y="283" fill="#f0a030">Membership signup</text>
+        <text x="55" y="300" font-size="9" fill="#8a8680">tier · join date</text>
+        <text x="55" y="315" font-size="9" fill="#8a8680">renewal state</text>
+
+        <rect x="40" y="355" width="240" height="40" rx="8" fill="none" stroke="#3a4150" stroke-dasharray="4 3"/>
+        <text x="55" y="378" fill="#8a8680" font-size="10">Door counter · Placer.ai <tspan fill="#6b665f">(opt.)</tspan></text>
+      </g>
+
+      <!-- UNIFY column: identity resolution hub -->
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#e6e1d8">
+        <rect x="320" y="140" width="260" height="160" rx="10" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.5"/>
+        <text x="335" y="163" fill="#d4a84b" font-size="11">Segment · identity graph</text>
+        <text x="335" y="185" font-size="9" fill="#8a8680">email as stable ID</text>
+        <text x="335" y="200" font-size="9" fill="#8a8680">device_id ↔ user_id</text>
+        <text x="335" y="215" font-size="9" fill="#8a8680">receipts ↔ visits</text>
+
+        <rect x="335" y="230" width="230" height="58" rx="6" fill="#23272f" stroke="#3a4150"/>
+        <text x="345" y="250" font-size="10" fill="#f0a030">unified user record</text>
+        <text x="345" y="265" font-size="8" fill="#8a8680">1 user = N visits + M receipts</text>
+        <text x="345" y="278" font-size="8" fill="#8a8680">tier · LTV · recency</text>
+      </g>
+
+      <!-- MODEL column: the 2 notebooks -->
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#e6e1d8">
+        <rect x="620" y="95" width="280" height="90" rx="8" fill="#23272f" stroke="#c14a1f" stroke-opacity="0.45"/>
+        <text x="635" y="118" fill="#f0a030">economic_impact_demo</text>
+        <text x="635" y="136" font-size="9" fill="#8a8680">traffic sim · funnel · proforma</text>
+        <text x="635" y="151" font-size="9" fill="#8a8680">RIMS-II multipliers</text>
+        <text x="635" y="171" font-size="8" fill="#6b665f">→ grant report, annual</text>
+
+        <rect x="620" y="205" width="280" height="90" rx="8" fill="#23272f" stroke="#1f4a3d" stroke-opacity="0.55"/>
+        <text x="635" y="228" fill="#f0a030">user_ltv_analysis_clean</text>
+        <text x="635" y="246" font-size="9" fill="#8a8680">cohorts · LTV · attribution</text>
+        <text x="635" y="261" font-size="9" fill="#8a8680">tier assignment model</text>
+        <text x="635" y="281" font-size="8" fill="#6b665f">→ ops dashboard, live</text>
+      </g>
+
+      <!-- USE column: outputs -->
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#e6e1d8">
+        <rect x="940" y="80" width="220" height="60" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.35"/>
+        <text x="955" y="102" fill="#d4a84b">Grant reporting</text>
+        <text x="955" y="120" font-size="9" fill="#8a8680">quarterly PDF export</text>
+
+        <rect x="940" y="160" width="220" height="60" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.35"/>
+        <text x="955" y="182" fill="#d4a84b">Ops dashboard</text>
+        <text x="955" y="200" font-size="9" fill="#8a8680">daily KPI refresh</text>
+
+        <rect x="940" y="240" width="220" height="60" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.35"/>
+        <text x="955" y="262" fill="#d4a84b">Marketing attribution</text>
+        <text x="955" y="280" font-size="9" fill="#8a8680">LTV by source · CAC</text>
+
+        <rect x="940" y="320" width="220" height="60" rx="8" fill="#1c1f25" stroke="#d4a84b" stroke-opacity="0.35"/>
+        <text x="955" y="342" fill="#d4a84b">Membership triggers</text>
+        <text x="955" y="360" font-size="9" fill="#8a8680">offer on visit #3</text>
+      </g>
+
+      <!-- wires: capture → unify -->
+      <g fill="none" stroke="#c14a1f" stroke-width="1.4" marker-end="url(#ar-warm)">
+        <path d="M280,105 C300,105 305,175 320,180"/>
+        <path d="M280,200 L320,215"/>
+        <path d="M280,295 C300,295 305,240 320,240"/>
+      </g>
+
+      <!-- unify → model -->
+      <g fill="none" stroke="#7a8c6e" stroke-width="1.6" marker-end="url(#ar-cool)">
+        <path d="M580,220 C595,220 605,140 620,140"/>
+        <path d="M580,260 C595,260 605,250 620,250"/>
+      </g>
+
+      <!-- model → use -->
+      <g fill="none" stroke="#d4a84b" stroke-width="1.4" marker-end="url(#ar-warm)" opacity="0.85">
+        <path d="M900,120 L940,110"/>
+        <path d="M900,250 L940,190"/>
+        <path d="M900,260 L940,270"/>
+        <path d="M900,265 L940,350"/>
+      </g>
+    </svg>
+  </figure>
+
+  <div class="tag-list" style="margin-top:1.5rem;">
+    <span class="tag">Purple WiFi</span>
+    <span class="tag">Toast POS</span>
+    <span class="tag">Segment</span>
+    <span class="tag">Python · Pandas</span>
+    <span class="tag">Jupyter</span>
+    <span class="tag">Matplotlib</span>
+  </div>
+</section>
+
+<!-- ─────────────── OUTCOMES ─────────────── -->
+<div class="rule"><div class="rule__line"></div></div>
+
+<section class="section">
+  <div class="section__eyebrow">Outcomes</div>
+  <h2 class="section__title">What <em>shipped</em>.</h2>
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi__value">$<em>2</em>M</div>
+      <div class="kpi__label">Grant secured</div>
+      <div class="kpi__sub">First-pass approval</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">75.5k</div>
+      <div class="kpi__label">Y1 visitors modeled</div>
+      <div class="kpi__sub">4 venues combined</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value"><em>7.5</em>×</div>
+      <div class="kpi__label">Member LTV gap</div>
+      <div class="kpi__sub">$60 → $450+</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">2</div>
+      <div class="kpi__label">Notebooks shipped</div>
+      <div class="kpi__sub">Still in production</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>The one-sentence takeaway —</strong> we stopped counting foot traffic and started tracking people. Who came in, how often they returned, what they spent, whether they stuck around. Once you can see the difference between a $60 customer and a $450 customer, the whole job becomes obvious: help more of the first group turn into the second.</p>
+  </div>
+
+  <div class="callout callout--sage">
+    <p><strong>What I learned —</strong> the instinct in grant work is to make the numbers look as big as possible. The discipline is the opposite: show the downside, cite your sources, and let the real number speak. The same discipline that convinces a committee also keeps the business honest with itself six months later.</p>
+  </div>
+</section>
+
+<!-- ─────────────── WHAT'S NEXT ─────────────── -->
+<div class="rule"><div class="rule__line"></div></div>
+
+<section class="section section--narrow prose">
+  <div class="section__eyebrow">What's next</div>
+  <h2 class="section__title">From projection to <em>the real thing.</em></h2>
+  <ul>
+    <li><strong>Swap simulation for live data.</strong> The space is open; the same pages now pull real WiFi sign-ins, real receipts, and real memberships instead of fictional customers.</li>
+    <li><strong>An automatic membership offer after visit #3.</strong> The data showed that a customer who makes it to their third visit is far more likely to sign up. So now an email goes out the moment it happens.</li>
+    <li><strong>A quarterly report to the city, auto-generated.</strong> Same analysis, one click, a fresh PDF for the grant committee every three months.</li>
+    <li><strong>A clearer picture of what's actually working.</strong> Matching the money spent on each marketing channel against the customers it brought in, so the team knows which flyers and ads were worth it.</li>
+  </ul>
+</section>
+
+<section class="footer-cta">
+  <h2 class="footer-cta__title">Want the <em>notebooks</em>?</h2>
+  <div class="footer-cta__actions">
+    <a class="pill pill--dark" href="../Portfolio.html#contact">Request access <span class="chev">→</span></a>
+    <a class="pill pill--ghost" href="braindump.html">Next: Braindump <span class="chev">→</span></a>
+  </div>
+</section>
+
+<footer class="legal">
+  <span>© 2026 · Denver, CO</span>
+  <span><a href="../Portfolio.html#work">Back to portfolio ↑</a></span>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.section, .moment, .moment-shot, .thesis, .part, .context-card, .kpi, .callout, .insights__cell').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+</script>
+</body>
+</html>

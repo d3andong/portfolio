@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Braindump — Case Study · Dean Eyolfson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_case.css">
+<style>
+  /* ─── Braindump product palette (lifted from the app) ─── */
+  :root {
+    --bd-brown: #3d2f26;        /* deep cocoa — landing bg / buttons */
+    --bd-brown-2: #2c211a;
+    --bd-paper: #f1ebe0;        /* warm cream — app bg */
+    --bd-paper-2: #f8f3e8;      /* lighter card */
+    --bd-pink: #e8b8c8;         /* signature pink accent */
+    --bd-pink-soft: #f4d8e1;
+    --bd-ink: #3d2f26;
+    --bd-muted: rgba(61,47,38,0.55);
+    --bd-faint: rgba(61,47,38,0.12);
+  }
+
+  /* Hero split — thesis left, recreated app right */
+  .hero-split {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 8rem var(--edge) 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 4rem;
+    align-items: end;
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .hero-split__stage {
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 480px;
+  }
+  .hero-split__stage::before {
+    content:'';
+    position: absolute;
+    inset: -4rem -2rem 0 -2rem;
+    background:
+      radial-gradient(55% 55% at 60% 45%, rgba(232,184,200,0.22), transparent 70%),
+      radial-gradient(40% 55% at 20% 80%, rgba(61,47,38,0.08), transparent 70%);
+    z-index: 0;
+  }
+
+  /* Thesis statement — the "before you scroll" summary */
+  .thesis {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem var(--edge) 2rem;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 3rem;
+    align-items: baseline;
+    border-bottom: 1px solid var(--fg-faint);
+  }
+  .thesis__label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .thesis__label::before {
+    content:''; display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.6rem;
+  }
+  .thesis p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+    line-height: 1.45;
+    color: var(--fg);
+    max-width: 62ch;
+    margin-bottom: 1rem;
+  }
+  .thesis p em { color: var(--accent); font-style: italic; }
+  .thesis p strong { color: var(--fg); font-weight: 500; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0; }
+
+  .thesis__map {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--fg-faint);
+  }
+  .thesis__step {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--fg-faint);
+    border-radius: 999px;
+  }
+  .thesis__step b {
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 0.5rem;
+  }
+
+  /* Device chrome wrapping the recreated UI */
+  .device {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bd-paper);
+    box-shadow:
+      0 1px 0 rgba(21,18,15,0.04),
+      0 30px 80px -20px rgba(21,18,15,0.35),
+      0 10px 30px -10px rgba(21,18,15,0.18),
+      inset 0 0 0 1px rgba(21,18,15,0.08);
+    width: 100%;
+  }
+  .device__chrome {
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.55rem 0.85rem;
+    background: #edeae4;
+    border-bottom: 1px solid rgba(21,18,15,0.08);
+  }
+  .device__chrome .dot { width: 10px; height: 10px; border-radius: 999px; }
+  .device__chrome .dot:nth-child(1) { background: #e48d58; }
+  .device__chrome .dot:nth-child(2) { background: #d4a84b; }
+  .device__chrome .dot:nth-child(3) { background: #7a8c6e; }
+  .device__chrome .url {
+    margin-left: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: rgba(21,18,15,0.4);
+    letter-spacing: 0.04em;
+  }
+  .hero-split__stage .device {
+    transform: perspective(1800px) rotateY(-6deg) rotateX(2deg);
+    transform-origin: center right;
+    max-width: 640px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── Braindump app recreation ─── */
+  .bd {
+    background: var(--bd-paper);
+    color: var(--bd-ink);
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 0;
+    min-height: 360px;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .bd--tall { min-height: 460px; }
+  .bd--brown { background: var(--bd-brown); color: var(--bd-paper); }
+
+  .bd__topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.7rem 1rem;
+    font-family: 'Fraunces', Georgia, serif;
+  }
+  .bd__logo {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 13px; font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  .bd__logo .badge {
+    width: 22px; height: 22px; border-radius: 999px;
+    background: var(--bd-paper-2);
+    display: inline-grid; place-items: center;
+    color: var(--bd-pink);
+  }
+  .bd--brown .bd__logo .badge { background: var(--bd-paper); }
+  .bd__logo .badge svg { width: 12px; height: 12px; display: block; }
+  .bd__logout {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 10px;
+    color: var(--bd-muted);
+  }
+  .bd--brown .bd__logout { color: rgba(241,235,224,0.55); }
+
+  /* Landing variant */
+  .bd__landing {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 1rem 1.5rem 2rem;
+  }
+  .bd__landing .hero-badge {
+    width: 46px; height: 46px; border-radius: 999px;
+    background: var(--bd-paper);
+    display: grid; place-items: center;
+    color: var(--bd-pink);
+    margin-bottom: 1.1rem;
+  }
+  .bd__landing .hero-badge svg { width: 26px; height: 26px; }
+  .bd__landing h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.08;
+    color: var(--bd-paper);
+    letter-spacing: -0.01em;
+    margin-bottom: 0.55rem;
+  }
+  .bd__landing .sub {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 300;
+    font-size: 11px;
+    color: rgba(241,235,224,0.62);
+    margin-bottom: 1.1rem;
+  }
+  .bd__landing .cta {
+    background: var(--bd-pink);
+    color: var(--bd-brown);
+    padding: 0.55rem 1.1rem;
+    border-radius: 6px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 11px;
+    font-weight: 400;
+    margin-bottom: 0.55rem;
+  }
+  .bd__landing .fine {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 9px;
+    color: rgba(241,235,224,0.35);
+  }
+
+  /* Dump screen variant */
+  .bd__center {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 1rem 1.5rem 2rem;
+  }
+  .bd__prompt {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--bd-ink);
+    letter-spacing: -0.005em;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .bd__textarea {
+    width: 100%; max-width: 460px;
+    background: var(--bd-paper-2);
+    border: 1px solid var(--bd-faint);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--bd-ink);
+    margin-bottom: 0.8rem;
+    min-height: 120px;
+    white-space: pre-wrap;
+  }
+  .bd__textarea p { margin-bottom: 0.6rem; }
+  .bd__textarea p:last-child { margin-bottom: 0; }
+  .bd__button {
+    width: 100%; max-width: 460px;
+    background: var(--bd-brown);
+    color: var(--bd-paper);
+    padding: 0.75rem;
+    text-align: center;
+    border-radius: 6px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  /* Result screen variant */
+  .bd__reflection {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--bd-muted);
+    text-align: center;
+    max-width: 420px;
+    margin-bottom: 0.85rem;
+    line-height: 1.5;
+  }
+  .bd__one-thing {
+    width: 100%; max-width: 460px;
+    background: var(--bd-paper-2);
+    border: 1.5px solid var(--bd-ink);
+    border-radius: 8px;
+    padding: 0.95rem 1.1rem 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+  .bd__one-thing__label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--bd-muted);
+    margin-bottom: 0.5rem;
+  }
+  .bd__one-thing__text {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--bd-ink);
+    letter-spacing: -0.005em;
+  }
+  .bd__shadow-note {
+    width: 100%; max-width: 460px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 9px;
+    color: var(--bd-muted);
+    margin-bottom: 0.45rem;
+    padding: 0 0.25rem;
+  }
+  .bd__shadow {
+    width: 100%; max-width: 460px;
+    list-style: none;
+    padding: 0 0.25rem;
+    margin-bottom: 1rem;
+  }
+  .bd__shadow li {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 10px;
+    color: var(--bd-muted);
+    padding: 0.2rem 0 0.2rem 0.9rem;
+    position: relative;
+  }
+  .bd__shadow li::before {
+    content: '·';
+    position: absolute; left: 0.25rem;
+    color: var(--bd-pink);
+  }
+  .bd__dismiss {
+    width: 100%; max-width: 460px;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--bd-faint);
+    border-bottom: 1px solid var(--bd-faint);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 10px;
+    color: var(--bd-ink);
+    text-align: center;
+    margin-bottom: 0.85rem;
+  }
+
+  /* ─── Moment + shot layout ─── */
+  .moment {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem var(--edge) 1rem;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 3rem;
+    align-items: baseline;
+  }
+  .moment__num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .moment__num::before {
+    content:'';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.6rem;
+  }
+  .moment h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .moment h3 em { font-family: var(--font-serif); font-style: italic; font-weight: 300; color: var(--accent); }
+  .moment p {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--fg-dim);
+    max-width: 54ch;
+    margin-bottom: 0.75rem;
+  }
+  .moment p em { color: var(--accent); font-style: italic; }
+  .moment p strong { color: var(--fg); font-weight: 500; font-family: var(--font-display); font-size: 0.95rem; }
+  .moment-shot {
+    max-width: 1100px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 var(--edge);
+  }
+
+  /* Flow diagram — shows the three-step ritual as one picture */
+  .flow {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem var(--edge) 3rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+    position: relative;
+  }
+  .flow__step {
+    background: var(--paper);
+    border: 1px solid var(--fg-faint);
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem 1.35rem;
+    position: relative;
+  }
+  .flow__step-num {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .flow__step-title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.1rem;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    margin-bottom: 0.45rem;
+  }
+  .flow__step-body {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--fg-dim);
+  }
+  .flow__step-body em { color: var(--accent); font-style: italic; }
+  .flow__arrow {
+    position: absolute;
+    top: 50%;
+    right: -0.75rem;
+    width: 1.5rem;
+    height: 1px;
+    background: var(--fg-faint);
+    display: grid; place-items: center;
+  }
+  .flow__arrow::after {
+    content:'→';
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--fg-dim);
+    background: var(--bg);
+    padding: 0 0.25rem;
+  }
+  .flow__step:last-child .flow__arrow { display: none; }
+
+  /* Stack list — simple service breakdown */
+  .stack-row {
+    max-width: 1100px;
+    margin: 1rem auto 0;
+    padding: 0 var(--edge);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--fg-faint);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stack-cell {
+    background: var(--paper);
+    padding: 1.2rem 1.3rem;
+  }
+  .stack-cell__label {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.55rem;
+  }
+  .stack-cell__value {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--fg);
+    margin-bottom: 0.4rem;
+  }
+  .stack-cell__note {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--fg-dim);
+  }
+
+  @media (max-width: 900px) {
+    .hero-split { grid-template-columns: 1fr; padding-top: 6rem; gap: 2rem; }
+    .hero-split__stage { min-height: 320px; }
+    .hero-split__stage .device { transform: none; }
+    .thesis { grid-template-columns: 1fr; gap: 1rem; padding: 3rem 1.25rem; }
+    .moment { grid-template-columns: 1fr; gap: 1rem; }
+    .flow { grid-template-columns: 1fr; }
+    .flow__arrow { display: none !important; }
+    .stack-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../Portfolio.html#work" class="back-nav">
+  <span class="arrow">←</span>
+  <span>Index</span>
+</a>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section class="hero-split">
+  <div>
+    <div class="hero__eyebrow">
+      <span class="dot"></span>
+      <span>Case 04</span>
+      <span style="opacity:.4">/</span>
+      <span>2024</span>
+      <span style="opacity:.4">/</span>
+      <span style="color:var(--sage)">Weekend build</span>
+    </div>
+    <h1 class="hero__title">Braindump &mdash; type what's in your head, get back <em>one thing to do</em>.</h1>
+    <p class="hero__summary">A small web app for the moment when your head is too full to start. You write down everything bouncing around &mdash; tasks, worries, half-ideas &mdash; and it hands back a single, concrete action you can start right now. Built and deployed in a day.</p>
+    <div class="hero__tags">
+      <span class="hero__tag">Next.js</span>
+      <span class="hero__tag">Supabase</span>
+      <span class="hero__tag">Vercel</span>
+      <span class="hero__tag">OpenAI</span>
+      <span class="hero__tag">Tailwind</span>
+    </div>
+    <div class="hero__meta">
+      <div class="hero__meta-cell"><span class="k">Role</span><span class="v">Design · Build</span></div>
+      <div class="hero__meta-cell"><span class="k">Year</span><span class="v">2024</span></div>
+      <div class="hero__meta-cell"><span class="k">Scope</span><span class="v">~1 day</span></div>
+      <div class="hero__meta-cell"><span class="k">Status</span><span class="v">Live · personal use</span></div>
+    </div>
+  </div>
+
+  <div class="hero-split__stage">
+    <div class="device">
+      <div class="device__chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">braindump.app &mdash; landing</span>
+      </div>
+      <div class="bd bd--brown bd--tall">
+        <div class="bd__topbar">
+          <span class="bd__logo">
+            <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            braindump
+          </span>
+        </div>
+        <div class="bd__landing">
+          <div class="hero-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h1>Unload your mind.<br>Start one thing.</h1>
+          <div class="sub">Turn mental noise into one clear action.</div>
+          <div class="cta">Get started — it's free</div>
+          <div class="fine">No credit card required. Takes 30 seconds.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── THESIS ─────────────── -->
+<section class="thesis">
+  <div class="thesis__label">The&nbsp;case in one paragraph</div>
+  <div>
+    <p>Most productivity tools ask you to <em>organize</em> when what you actually need is permission to <em>stop organizing</em>. Braindump is the smallest app I could imagine that does the opposite: one text box, one button, one answer. I built it in a day to have it for myself, and to practice shipping the whole loop &mdash; frontend, auth, model, deploy &mdash; on a stack I'd never used together.</p>
+    <div class="thesis__map">
+      <span class="thesis__step"><b>01</b> The problem</span>
+      <span class="thesis__step"><b>02</b> How it works</span>
+      <span class="thesis__step"><b>03</b> Three screens</span>
+      <span class="thesis__step"><b>04</b> How it was built</span>
+      <span class="thesis__step"><b>05</b> Honest outcomes</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 01 · THE PROBLEM ─────────────── -->
+<section class="section">
+  <div class="section__eyebrow">01 &middot; The problem</div>
+  <h2 class="section__title">You open a planner when you're stuck. Then the planner makes you <em>more</em> stuck.</h2>
+  <div class="context-grid">
+    <div class="context-card">
+      <div class="context-card__label">The moment</div>
+      <div class="context-card__title">Your head is full and you can't start anything.</div>
+      <div class="context-card__body">Ten things feel equally urgent. You know you're avoiding the important one. You open a notes app hoping it'll help and close it five minutes later with a longer list.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">Why lists don't help</div>
+      <div class="context-card__title">A list is still ten things.</div>
+      <div class="context-card__body">Writing it down organizes your anxiety, but it doesn't reduce it. You still have to pick, and picking is the thing your brain can't do right now.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">What you actually need</div>
+      <div class="context-card__title">Someone to just tell you what to do first.</div>
+      <div class="context-card__body">Not a suggestion, not a ranked list, not a &ldquo;here are your options&rdquo;. A single concrete sentence you can do in five minutes, so the stuck feeling breaks.</div>
+    </div>
+    <div class="context-card">
+      <div class="context-card__label">The design bet</div>
+      <div class="context-card__title">One output is the product.</div>
+      <div class="context-card__body">Offering two choices reintroduces the original problem. So there are no choices. You get the one thing, a line explaining why, and permission to ignore the rest.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 02 · HOW IT WORKS ─────────────── -->
+<section class="section" style="padding-bottom:1rem;">
+  <div class="section__eyebrow">02 &middot; How it works</div>
+  <h2 class="section__title">Three screens. Under two minutes end to end.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.6;color:var(--fg-dim);max-width:54rem;">You land, you dump, you get one thing. That's the full loop &mdash; no dashboard, no history, no settings. Here's what each step does before we zoom in on the screens.</p>
+</section>
+
+<div class="flow">
+  <div class="flow__step">
+    <div class="flow__step-num">Step 01 &middot; You arrive</div>
+    <div class="flow__step-title">Landing page.</div>
+    <div class="flow__step-body">A short promise and one button. No feature list. If the idea doesn't land in one line, the product isn't the problem.</div>
+    <div class="flow__arrow"></div>
+  </div>
+  <div class="flow__step">
+    <div class="flow__step-num">Step 02 &middot; You write</div>
+    <div class="flow__step-title">One text box.</div>
+    <div class="flow__step-body">Type whatever's in your head. No formatting, no tags, no length limit. The button says <em>Unload</em>.</div>
+    <div class="flow__arrow"></div>
+  </div>
+  <div class="flow__step">
+    <div class="flow__step-num">Step 03 &middot; You get one thing</div>
+    <div class="flow__step-title">A single action.</div>
+    <div class="flow__step-body">Plus a short reflection naming the pattern, and a small &ldquo;you don't need to think about these&rdquo; list for everything else.</div>
+  </div>
+</div>
+
+<!-- ─────────────── 03 · THE THREE SCREENS ─────────────── -->
+<section class="section" style="padding-top:2rem;padding-bottom:1rem;">
+  <div class="section__eyebrow">03 &middot; The three screens</div>
+  <h2 class="section__title">Recreated from the live app.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.6;color:var(--fg-dim);max-width:54rem;">These are rebuilt in HTML using the same colors and type as the shipped product &mdash; not screenshots. I'll explain what each screen is doing and the one or two design choices that matter on it.</p>
+</section>
+
+<!-- ─────────────── SCREEN 01 — LANDING ─────────────── -->
+<div class="moment">
+  <div class="moment__num">Screen 01 &middot; Landing</div>
+  <div>
+    <h3>What it is: the front door.</h3>
+    <p>A visitor's first ten seconds with the app. One sentence, one button. A dark cocoa background makes it feel like a quiet room rather than a cheerful productivity tool &mdash; nobody shows up here when they're calm.</p>
+    <p><strong>The main choice.</strong> No screenshots or feature bullets. If the sentence &ldquo;unload your mind, start one thing&rdquo; doesn't explain it, adding more copy won't either.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">braindump.app &mdash; /</span>
+    </div>
+    <div class="bd bd--brown" style="min-height:420px;">
+      <div class="bd__topbar">
+        <span class="bd__logo">
+          <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          braindump
+        </span>
+      </div>
+      <div class="bd__landing">
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h1 style="font-size:30px;line-height:1.05;">Unload your mind.<br>Start one thing.</h1>
+        <div class="sub" style="font-size:12px;margin-top:0.35rem;">Turn mental noise into one clear action.</div>
+        <div class="cta" style="margin-top:1rem;">Get started — it's free</div>
+        <div class="fine">No credit card required. Takes 30 seconds.</div>
+        <div class="fine" style="margin-top:1.5rem;font-style:italic;">A ritual for the overwhelmed mind.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 02 — DUMP ─────────────── -->
+<div class="moment">
+  <div class="moment__num">Screen 02 &middot; The dump</div>
+  <div>
+    <h3>What it is: one text box, no rules.</h3>
+    <p>The prompt is a question: <em>&ldquo;What's in your head right now?&rdquo;</em>. You type whatever comes out &mdash; tasks, feelings, distractions &mdash; all in one paragraph. The button says <b>Unload</b>, not Submit.</p>
+    <p><strong>The main choice.</strong> No formatting, no tags, no minimum length, no character counter. Every widget I didn't add is one less thing to think about while trying to think less.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">braindump.app &mdash; /dump</span>
+    </div>
+    <div class="bd bd--tall">
+      <div class="bd__topbar">
+        <span class="bd__logo">
+          <span class="badge" style="background:var(--bd-pink-soft);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          braindump
+        </span>
+        <span class="bd__logout">Log out</span>
+      </div>
+      <div class="bd__center">
+        <div class="bd__prompt">What's in your head right now?</div>
+        <div class="bd__textarea">
+          <p>Honestly I've been avoiding the hard stuff and just doing easy busywork. The video is the thing that actually matters but I keep finding excuses. Maybe I should just watch some tutorials first? No that's just more procrastination. Also need to call mom back and figure out what's happening with the car insurance renewal.</p>
+          <p>Just feeling scattered today. Too many tabs open in my brain.</p>
+        </div>
+        <div class="bd__button">Unload</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 03 — RESULT ─────────────── -->
+<div class="moment">
+  <div class="moment__num">Screen 03 &middot; The result</div>
+  <div>
+    <h3>What it is: one reflection, one thing, a short list of &ldquo;not now&rdquo;.</h3>
+    <p>Top: a single italic sentence naming the pattern in the dump &mdash; not advice, just observation. Middle: the bordered card holding the <em>one thing</em> &mdash; verb-first, startable in five minutes. Bottom: a quiet shadow list of the other stuff so it doesn't feel lost.</p>
+    <p><strong>How it decides.</strong> The dump gets sent to a language model with a strict set of rules: pick exactly one action, make it startable immediately, phrase it as a commitment, never a suggestion. The instructions to the model are more carefully written than anything else in the product.</p>
+  </div>
+</div>
+<div class="moment-shot">
+  <div class="device">
+    <div class="device__chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">braindump.app &mdash; /result</span>
+    </div>
+    <div class="bd bd--tall">
+      <div class="bd__topbar">
+        <span class="bd__logo">
+          <span class="badge" style="background:var(--bd-pink-soft);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-1.8 0-3.3 1.3-3.6 3-1.6.2-2.9 1.5-2.9 3.2 0 .8.3 1.5.8 2-1 .5-1.8 1.5-1.8 2.8 0 1.6 1.2 2.9 2.7 3.1.2 1.6 1.6 2.9 3.3 2.9h3c1.7 0 3.1-1.3 3.3-2.9 1.5-.2 2.7-1.5 2.7-3.1 0-1.3-.7-2.3-1.8-2.8.5-.5.8-1.2.8-2 0-1.7-1.3-3-2.9-3.2C15.3 4.3 13.8 3 12 3z M12 3v17" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          braindump
+        </span>
+        <span class="bd__logout">Log out</span>
+      </div>
+      <div class="bd__center">
+        <div class="bd__reflection">You're recognizing the pattern of avoiding the video editing by finding easier tasks and justifications.</div>
+        <div class="bd__one-thing">
+          <div class="bd__one-thing__label">Your One Thing</div>
+          <div class="bd__one-thing__text">Open your video editing software and load the project file you need to finish.</div>
+        </div>
+        <div class="bd__shadow-note">You don't need to think about these right now.</div>
+        <ul class="bd__shadow">
+          <li>Respond to Sarah's email about the project timeline</li>
+          <li>Schedule the dentist appointment</li>
+          <li>Call mom back</li>
+          <li>Handle car insurance renewal</li>
+        </ul>
+        <div class="bd__dismiss">Do this one thing and leave the rest at the door.</div>
+        <div class="bd__button">Dump again</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── 04 · HOW IT WAS BUILT ─────────────── -->
+<div class="rule"><div class="rule__line"></div></div>
+
+<section class="section">
+  <div class="section__eyebrow">04 &middot; How it was built</div>
+  <h2 class="section__title">Four off-the-shelf services, <em>wired together</em>.</h2>
+  <p style="font-family:var(--font-serif);font-weight:300;font-size:1.1rem;line-height:1.6;color:var(--fg-dim);max-width:54rem;margin-bottom:2rem;">There's no clever architecture here. The goal was practice &mdash; running the whole loop from login to deploy using pieces I hadn't used together before. Each piece below does one job.</p>
+</section>
+
+<div class="stack-row">
+  <div class="stack-cell">
+    <div class="stack-cell__label">The pages you see</div>
+    <div class="stack-cell__value">Next.js + Tailwind</div>
+    <div class="stack-cell__note">Three screens. Landing, dump, result. Styled with Tailwind so I didn't have to name CSS classes.</div>
+  </div>
+  <div class="stack-cell">
+    <div class="stack-cell__label">Login + saving</div>
+    <div class="stack-cell__value">Supabase</div>
+    <div class="stack-cell__note">Email magic-link login. One table that stores each dump and what the app wrote back, so I can re-read old results later.</div>
+  </div>
+  <div class="stack-cell">
+    <div class="stack-cell__label">The &ldquo;one thing&rdquo;</div>
+    <div class="stack-cell__value">OpenAI gpt-4o-mini</div>
+    <div class="stack-cell__note">The dump is sent to a language model with a short, strict instruction. The instructions are the product opinion &mdash; the UI just holds the output still.</div>
+  </div>
+</div>
+
+<section class="section section--narrow prose" style="padding-top:2.5rem;">
+  <div class="callout callout--sage">
+    <p><strong>The real takeaway.</strong> The unglamorous plumbing &mdash; login redirect URLs, environment variables across local and production, not running up a model bill &mdash; took more hours than the product itself. That was the point. The next time I ship something on this stack it'll be faster, because I know where the sharp edges are.</p>
+  </div>
+</section>
+
+<!-- ─────────────── 05 · OUTCOMES ─────────────── -->
+<section class="section">
+  <div class="section__eyebrow">05 &middot; Honest outcomes</div>
+  <h2 class="section__title">What it is, and what it isn't.</h2>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi__value">~<em>1</em>d</div>
+      <div class="kpi__label">Idea to deployed</div>
+      <div class="kpi__sub">Single build session</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value"><em>3</em></div>
+      <div class="kpi__label">Screens total</div>
+      <div class="kpi__sub">Landing · dump · result</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value"><em>1</em></div>
+      <div class="kpi__label">Output per session</div>
+      <div class="kpi__sub">On purpose</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__value">n = <em>1</em></div>
+      <div class="kpi__label">Regular user</div>
+      <div class="kpi__sub">Me, when I need it</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>This is a weekend experiment that happens to run in production, not a product with a growth curve. It works for me when my head is full. A few friends have the link bookmarked. That's the full scoreboard.</p>
+    <p>What I took away: the boring middle of shipping &mdash; auth, hosting, billing, deploy &mdash; is the part that slows you down the first time you touch a new stack. Getting through it once on a throwaway project means the next real thing I build on Next.js and Supabase won't cost a weekend of setup.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>What was hard.</strong> Not the code. The editorial voice. How confident should the app sound when it picks your one thing? If the pick is wrong, does it apologize or stand behind it? Braindump lives between a coach and a task runner &mdash; too much of either and it breaks. Writing the instructions to the model <em>was</em> the product design.</p>
+  </div>
+</section>
+
+<!-- ─────────────── FOOTER CTA ─────────────── -->
+<section class="footer-cta">
+  <h2 class="footer-cta__title">A small thing,<br>shipped <em>end to end</em>.</h2>
+  <div class="footer-cta__actions">
+    <a class="pill pill--dark" href="../Portfolio.html#contact">Get in touch <span class="chev">→</span></a>
+    <a class="pill pill--ghost" href="onboardai.html">Next case: OnboardAI <span class="chev">→</span></a>
+  </div>
+</section>
+
+<footer class="legal">
+  <span>© 2026 · Denver, CO</span>
+  <span><a href="../Portfolio.html#work">Back to portfolio ↑</a></span>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.section, .moment, .moment-shot, .context-card, .kpi, .callout, .stack-cell, .flow__step, .thesis').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+</script>
+
+</body>
+</html>

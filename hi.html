@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dean × {{COMPANY_NAME}}</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- POSTHOG_SLOT -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #efeae0;
+    --bg-2: #e4ddd0;
+    --paper: #fff6ea;
+    --fg: #15120f;
+    --fg-dim: rgba(21,18,15,0.58);
+    --fg-faint: rgba(21,18,15,0.14);
+    --accent: #c14a1f;
+    --accent-2: #1f4a3d;
+    --accent-3: #d4a84b;
+    --sage: #7a8c6e;
+    --glow: rgba(193,74,31,0.32);
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-serif: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --edge: 2.5rem;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body { background: var(--bg); color: var(--fg); }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-display);
+    font-weight: 400;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  /* Paper grain (same as Portfolio.html) */
+  body::after {
+    content:'';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.06;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  /* ─── Back pill ─── */
+  .back-nav {
+    position: fixed;
+    top: 1.25rem; left: 1.25rem;
+    z-index: 500;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1rem 0.55rem 0.85rem;
+    background: rgba(255,246,234,0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 8px 30px rgba(21,18,15,0.08), inset 0 0 0 1px rgba(21,18,15,0.10);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    transition: color .3s, transform .3s;
+  }
+  .back-nav:hover { color: var(--fg); transform: translateX(-3px); }
+  .back-nav .arrow { transition: transform .3s; }
+  .back-nav:hover .arrow { transform: translateX(-3px); }
+
+  /* Tiny version chip, mirrors Portfolio.html's foot */
+  .version {
+    position: fixed;
+    top: 1.25rem; right: 1.25rem;
+    z-index: 500;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding: 0.7rem 1rem;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 7rem var(--edge) 2.5rem;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero__bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+  .hero__ascii {
+    position: absolute; inset: 0;
+    font-family: var(--font-mono);
+    font-size: 11px; line-height: 12px; letter-spacing: 0.5px;
+    color: var(--fg);
+    opacity: 0.22;
+    white-space: pre;
+    pointer-events: none; user-select: none;
+    padding: 0.5rem;
+  }
+  .hero__blob {
+    position: absolute;
+    width: 55vmax; height: 55vmax;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle at 50% 50%, var(--glow), transparent 65%);
+    filter: blur(40px);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .hero__inner {
+    position: relative;
+    z-index: 2;
+    align-self: center;
+    display: block;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Eyebrow — personal / for company */
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--fg);
+    margin-bottom: 2.25rem;
+    display: inline-flex; align-items: center; gap: 0.9rem;
+    opacity: 0;
+    animation: fadeIn .9s ease forwards .15s;
+  }
+  .hero__eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(193,74,31,0.55);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  .hero__eyebrow .sep { opacity: .4; }
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* Dean × Company lockup */
+  .lockup {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    column-gap: clamp(1rem, 2.5vw, 2rem);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(3.5rem, 13vw, 13rem);
+    line-height: 0.88;
+    letter-spacing: -0.05em;
+  }
+  .lockup__dean {
+    display: inline-block;
+    overflow: hidden;
+  }
+  .lockup__dean > span {
+    display: inline-block;
+    transform: translateY(110%);
+    animation: riseIn 1s cubic-bezier(.2,.7,.2,1) forwards .25s;
+  }
+  .lockup__x {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+    font-size: 0.72em;
+    line-height: 1;
+    align-self: center;
+    display: inline-block;
+    position: relative;
+    top: -0.02em;
+    opacity: 0;
+    animation: fadeIn .6s ease forwards .55s;
+  }
+  .lockup__company {
+    display: inline-block;
+    overflow: hidden;
+    color: var(--fg);
+  }
+  .lockup__company > span {
+    display: inline-block;
+    transform: translateY(110%);
+    animation: riseIn 1s cubic-bezier(.2,.7,.2,1) forwards .45s;
+  }
+  @keyframes riseIn { from { transform: translateY(110%); } to { transform: translateY(0%); } }
+
+  /* Under-lockup divider — mark only, no words */
+  .hero__meta {
+    margin-top: 2.25rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    opacity: 0;
+    animation: fadeIn .7s ease forwards .85s;
+  }
+  .hero__meta-mark {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow:
+      -14px 0 0 var(--fg),
+      14px 0 0 var(--fg);
+  }
+
+  /* ─── ACTION ROW — email capture + CTA side by side ─── */
+  .action {
+    margin-top: 3.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) auto;
+    align-items: end;
+    gap: 2.5rem 3rem;
+    max-width: 960px;
+    opacity: 0;
+    animation: fadeIn .8s ease forwards 1.05s;
+  }
+
+  /* Email capture — glass card, mirrors .back-nav chip */
+  .capture {
+    background: rgba(255,246,234,0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+      0 8px 30px rgba(21,18,15,0.08),
+      inset 0 0 0 1px rgba(21,18,15,0.10);
+    border-radius: 18px;
+    padding: 1.35rem 1.5rem 1.25rem;
+    max-width: 36rem;
+  }
+  .capture__label {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+    line-height: 1.45;
+    color: var(--fg);
+    margin-bottom: 0.9rem;
+    max-width: 42ch;
+    text-wrap: pretty;
+  }
+  .capture__label em { color: var(--accent); font-style: italic; }
+  .capture__form {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-bottom: 1px solid rgba(21,18,15,0.22);
+    transition: border-color .3s ease;
+    max-width: 100%;
+  }
+  .capture__form:focus-within { border-color: var(--accent); }
+  .capture__form input[type="email"] {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--fg);
+    background: transparent;
+    border: 0;
+    padding: 0.7rem 0.5rem 0.7rem 0;
+    outline: none;
+    min-width: 0;
+  }
+  .capture__form input[type="email"]::placeholder {
+    color: rgba(21,18,15,0.32);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+  }
+  .capture__form button {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg);
+    padding: 0.45rem 0.25rem 0.45rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color .25s ease, transform .35s cubic-bezier(.2,.7,.2,1);
+    white-space: nowrap;
+  }
+  .capture__form button:hover { color: var(--accent); transform: translateX(3px); }
+  .capture__done {
+    display: none;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.25rem;
+    color: var(--accent);
+    padding: 0.1rem 0;
+  }
+  .capture.is-done .capture__form,
+  .capture.is-done .capture__label { display: none; }
+  .capture.is-done .capture__done { display: block; }
+
+  /* See portfolio CTA — matches home-page .hero__cta outline pill */
+  .cta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg);
+    padding: 0.95rem 1.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--fg);
+    background: transparent;
+    transition: background .3s ease, color .3s ease, transform .4s cubic-bezier(.2,.7,.2,1);
+    white-space: nowrap;
+  }
+  .cta-pill .arrow {
+    display: inline-block;
+    transition: transform .35s cubic-bezier(.2,.7,.2,1);
+  }
+  .cta-pill:hover {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .cta-pill:hover .arrow { transform: translateX(4px) rotate(-45deg); }
+
+  /* ─── Hero foot — matches home page ─── */
+  .hero__foot {
+    z-index: 2;
+    margin-top: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    opacity: 0;
+    animation: fadeIn .8s ease forwards 1.3s;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  @media (max-width: 820px) {
+    :root { --edge: 1.25rem; }
+    .hero { padding-top: 5.5rem; }
+    .action { grid-template-columns: 1fr; gap: 2rem; }
+    .hero__foot { flex-direction: column; gap: 0.9rem; align-items: flex-start; }
+    .lockup { font-size: clamp(3rem, 16vw, 6rem); }
+    .version { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="/" class="back-nav">
+  <span class="arrow">←</span>
+  <span>deaneyolfson.com</span>
+</a>
+<span class="version">Personal · 2026.04</span>
+
+<section class="hero">
+  <div class="hero__bg">
+    <div class="hero__blob" id="heroBlob"></div>
+    <pre class="hero__ascii" id="heroAscii"></pre>
+  </div>
+
+  <div class="hero__inner">
+
+    <div class="hero__eyebrow">
+      <span class="dot"></span>
+      <span>Made for {{COMPANY_NAME}}</span>
+    </div>
+
+    <!-- Dean × Company lockup -->
+    <h1 class="lockup">
+      <span class="lockup__dean"><span>Dean</span></span>
+      <span class="lockup__x">×</span>
+      <span class="lockup__company"><span>{{COMPANY_NAME}}</span></span>
+    </h1>
+
+    <div class="hero__meta" aria-hidden="true">
+      <span class="hero__meta-mark"></span>
+    </div>
+
+    <!-- Action row -->
+    <div class="action">
+      <div class="capture" id="capture">
+        <p class="capture__label">
+          Want the <em>stats</em> from your own visit? Leave your email and I'll send you a summary.
+        </p>
+        <form class="capture__form" id="captureForm" action="{{FORMSPREE_ENDPOINT}}" method="POST" novalidate>
+          <input type="hidden" name="company" value="{{COMPANY_NAME}}">
+          <input
+            type="email"
+            name="email"
+            id="captureEmail"
+            placeholder="you@{{COMPANY_NAME}}.com"
+            autocomplete="email"
+            required
+          >
+          <button type="submit">Send <span class="chev">→</span></button>
+        </form>
+        <div class="capture__done">Got it. Soon.</div>
+      </div>
+
+      <a href="/" class="cta-pill">
+        See portfolio <span class="arrow">→</span>
+      </a>
+    </div>
+
+  </div>
+
+  <div class="hero__foot">
+    <span>© 2026 · Denver, CO</span>
+    <span>v. 2026.04 · hi/{{COMPANY_SLUG}}</span>
+  </div>
+</section>
+
+<script>
+  /* ─── ASCII flow field (straight from Portfolio.html) ─── */
+  (function () {
+    var el = document.getElementById('heroAscii');
+    var hero = document.querySelector('.hero');
+    if (!el || !hero) return;
+    var CHARS = ' .·:-=+*#%@';
+    var cols = 0, rows = 0, mouseX = 0.5, mouseY = 0.5, scroll = 0;
+    function measure() {
+      cols = Math.max(1, Math.min(220, Math.floor(hero.clientWidth / 9)));
+      rows = Math.max(1, Math.min(140, Math.floor(hero.clientHeight / 12)));
+    }
+    var raf, lastT = 0;
+    function frame(t) {
+      if (t - lastT < 33) { raf = requestAnimationFrame(frame); return; }
+      lastT = t;
+      t *= 0.001;
+      var parts = new Array(rows);
+      var mx = mouseX * cols, my = mouseY * rows;
+      for (var y = 0; y < rows; y++) {
+        var line = '';
+        for (var x = 0; x < cols; x++) {
+          var dx = (x - cols * 0.5) / cols, dy = (y - rows * 0.5) / rows;
+          var v = Math.sin(dx * 6 + t * 0.9) + Math.cos(dy * 5 - t * 0.8) + Math.sin((dx * dx + dy * dy) * 10 - t);
+          var mdx = (x - mx) / cols, mdy = (y - my) / rows;
+          var md = Math.sqrt(mdx * mdx + mdy * mdy);
+          var ripple = Math.cos(md * 14 - t * 3) * Math.exp(-md * 4);
+          var s = Math.sin(dy * 8 + scroll * 0.002);
+          var n = (v * 0.35 + ripple * 0.7 + s * 0.15 + 1) / 2;
+          var i = Math.max(0, Math.min(CHARS.length - 1, Math.floor(n * CHARS.length)));
+          line += CHARS[i];
+        }
+        parts[y] = line;
+      }
+      el.textContent = parts.join('\n');
+      raf = requestAnimationFrame(frame);
+    }
+    function start() { measure(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+    window.addEventListener('resize', start);
+    window.addEventListener('mousemove', function (e) {
+      var r = hero.getBoundingClientRect();
+      mouseX = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      mouseY = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    });
+    window.addEventListener('scroll', function () { scroll = window.scrollY; });
+    start();
+  })();
+
+  /* Cursor-lag blob */
+  (function () {
+    var blob = document.getElementById('heroBlob');
+    if (!blob) return;
+    var tx = 0, ty = 0, cx = 0, cy = 0;
+    window.addEventListener('mousemove', function (e) {
+      tx = (e.clientX / window.innerWidth - 0.5) * 60;
+      ty = (e.clientY / window.innerHeight - 0.5) * 60;
+    });
+    function tick() {
+      cx += (tx - cx) * 0.05; cy += (ty - cy) * 0.05;
+      blob.style.transform = 'translate(calc(-50% + ' + cx + 'px), calc(-50% + ' + cy + 'px))';
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+
+  /* Email capture success state (design only — integration pass will wire submit) */
+  (function () {
+    var form = document.getElementById('captureForm');
+    var wrap = document.getElementById('capture');
+    if (!form || !wrap) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = document.getElementById('captureEmail');
+      if (!email || !email.value || email.value.indexOf('@') === -1) {
+        email && email.focus();
+        return;
+      }
+      wrap.classList.add('is-done');
+    });
+  })();
+</script>
+
+<!-- ──────────────────────────────────────────────────────────────────
+     PREVIEW-ONLY: Replace template tokens so this file renders in the
+     design review with real copy. The integration pass will delete
+     this block and substitute tokens server-side per URL.
+     ─────────────────────────────────────────────────────────────── -->
+<script>
+  (function () {
+    var TOKENS = {
+      '{{COMPANY_NAME}}': 'Coreweave',
+      '{{COMPANY_SLUG}}': 'coreweave',
+      '{{PERSON_FIRST_NAME}}': 'there',
+      '{{FORMSPREE_ENDPOINT}}': 'https://formspree.io/f/myknlqyj'
+    };
+    function walk(node) {
+      if (node.nodeType === 3) {
+        var t = node.nodeValue;
+        if (t.indexOf('{{') === -1) return;
+        Object.keys(TOKENS).forEach(function (k) {
+          t = t.split(k).join(TOKENS[k]);
+        });
+        node.nodeValue = t;
+      } else if (node.nodeType === 1 && node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') {
+        if (node.hasAttributes()) {
+          for (var i = 0; i < node.attributes.length; i++) {
+            var a = node.attributes[i];
+            if (a.value.indexOf('{{') !== -1) {
+              var nv = a.value;
+              Object.keys(TOKENS).forEach(function (k) { nv = nv.split(k).join(TOKENS[k]); });
+              node.setAttribute(a.name, nv);
+            }
+          }
+        }
+        for (var c = node.firstChild; c; c = c.nextSibling) walk(c);
+      }
+    }
+    walk(document.body);
+    // Also patch <title>
+    document.title = document.title.replace('{{COMPANY_NAME}}', TOKENS['{{COMPANY_NAME}}']);
+  })();
+</script>
+
+</body>
+</html>
