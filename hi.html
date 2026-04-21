@@ -6,7 +6,19 @@
 <title>Dean × {{COMPANY_NAME}}</title>
 <meta name="robots" content="noindex, nofollow">
 
-<!-- POSTHOG_SLOT -->
+<!-- PostHog — placeholder key, replace with your project key at deploy -->
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+  // Replace 'PH_PROJECT_KEY' with your PostHog project API key (public, safe in client)
+  posthog.init('phc_nR7MpCmFndMpH3tkWULRqfyoLB4hrwVtb6SiZPTbXK7R', {
+    api_host: 'https://us.i.posthog.com',
+    person_profiles: 'identified_only',
+    session_recording: { maskAllInputs: false },
+    capture_pageview: true,
+    autocapture: true
+  });
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -412,7 +424,7 @@
             type="email"
             name="email"
             id="captureEmail"
-            placeholder="you@{{COMPANY_NAME}}.com"
+            placeholder="you@{{COMPANY_DOMAIN}}"
             autocomplete="email"
             required
           >
@@ -499,43 +511,49 @@
     tick();
   })();
 
-  /* Email capture success state (design only — integration pass will wire submit) */
+  /* ─── Runtime: read URL params, swap tokens, wire PostHog + Formspree ─── */
   (function () {
-    var form = document.getElementById('captureForm');
-    var wrap = document.getElementById('capture');
-    if (!form || !wrap) return;
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var email = document.getElementById('captureEmail');
-      if (!email || !email.value || email.value.indexOf('@') === -1) {
-        email && email.focus();
-        return;
-      }
-      wrap.classList.add('is-done');
-    });
-  })();
-</script>
+    // Read URL params
+    var params = new URLSearchParams(window.location.search);
+    var slug = (params.get('c') || '').trim().toLowerCase();
 
-<!-- ──────────────────────────────────────────────────────────────────
-     PREVIEW-ONLY: Replace template tokens so this file renders in the
-     design review with real copy. The integration pass will delete
-     this block and substitute tokens server-side per URL.
-     ─────────────────────────────────────────────────────────────── -->
-<script>
-  (function () {
+    // Direct-visit fallback — this page is never meant to be hit without a company slug
+    if (!slug) {
+      window.location.replace('/');
+      return;
+    }
+
+    // Display name: explicit ?n= overrides; otherwise title-case the slug.
+    // Title-casing is imperfect (coreweave → Coreweave, not CoreWeave) so always
+    // pass ?n= from the CLI for brand-correct casing.
+    var displayName = (params.get('n') || '').trim();
+    if (!displayName) {
+      displayName = slug.charAt(0).toUpperCase() + slug.slice(1);
+    }
+
+    // Domain override for placeholder + Formspree metadata
+    var domain = (params.get('d') || '').trim().toLowerCase() || (slug + '.com');
+
+    // Person slug — used for distinct_id; optional
+    var personSlug = (params.get('p') || '').trim().toLowerCase();
+
+    // Optional note override — allows the CLI to push a custom intro later
+    // (not currently rendered in hero, reserved for future use)
+
+    // Build token substitution map
     var TOKENS = {
-      '{{COMPANY_NAME}}': 'Coreweave',
-      '{{COMPANY_SLUG}}': 'coreweave',
-      '{{PERSON_FIRST_NAME}}': 'there',
-      '{{FORMSPREE_ENDPOINT}}': 'https://formspree.io/f/myknlqyj'
+      '{{COMPANY_NAME}}': displayName,
+      '{{COMPANY_SLUG}}': slug,
+      '{{COMPANY_DOMAIN}}': domain,
+      '{{FORMSPREE_ENDPOINT}}': 'https://formspree.io/f/mkokqwvy'
     };
+
+    // Walk the DOM swapping tokens in text nodes + attributes
     function walk(node) {
       if (node.nodeType === 3) {
         var t = node.nodeValue;
         if (t.indexOf('{{') === -1) return;
-        Object.keys(TOKENS).forEach(function (k) {
-          t = t.split(k).join(TOKENS[k]);
-        });
+        Object.keys(TOKENS).forEach(function (k) { t = t.split(k).join(TOKENS[k]); });
         node.nodeValue = t;
       } else if (node.nodeType === 1 && node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') {
         if (node.hasAttributes()) {
@@ -552,8 +570,66 @@
       }
     }
     walk(document.body);
-    // Also patch <title>
-    document.title = document.title.replace('{{COMPANY_NAME}}', TOKENS['{{COMPANY_NAME}}']);
+    document.title = document.title.replace('{{COMPANY_NAME}}', displayName);
+
+    // PostHog identify — distinct_id is company-slug[-person-slug]
+    var distinctId = personSlug ? (slug + '-' + personSlug) : slug;
+    var personProps = {
+      company_slug: slug,
+      company_name: displayName,
+      source: 'welcome_mat',
+      first_seen: new Date().toISOString()
+    };
+    if (personSlug) personProps.person_slug = personSlug;
+
+    if (window.posthog && posthog.identify) {
+      try {
+        posthog.identify(distinctId, personProps);
+        posthog.capture('welcome_mat_viewed', { company: slug, person: personSlug || null });
+      } catch (e) { /* silent */ }
+    }
+
+    // Form submit — PostHog identify w/ email, capture event, POST to Formspree
+    var form = document.getElementById('captureForm');
+    var wrap = document.getElementById('capture');
+    if (!form || !wrap) return;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var emailInput = document.getElementById('captureEmail');
+      var email = emailInput && emailInput.value ? emailInput.value.trim() : '';
+      if (!email || email.indexOf('@') === -1) {
+        emailInput && emailInput.focus();
+        return;
+      }
+
+      // Optimistic UI — flip to done state immediately
+      wrap.classList.add('is-done');
+
+      // Identify with email + opt-in flag (lands on PostHog person)
+      if (window.posthog && posthog.identify) {
+        try {
+          posthog.identify(distinctId, { email: email, stats_opt_in: true });
+          posthog.capture('stats_requested', { email: email, company: slug });
+        } catch (err) { /* silent */ }
+      }
+
+      // POST to Formspree for live email notification to Dean
+      try {
+        var fd = new FormData();
+        fd.append('email', email);
+        fd.append('company', displayName);
+        fd.append('company_slug', slug);
+        fd.append('person_slug', personSlug || '');
+        fd.append('distinct_id', distinctId);
+        fd.append('source', 'welcome_mat');
+        fetch(form.getAttribute('action'), {
+          method: 'POST',
+          body: fd,
+          headers: { 'Accept': 'application/json' }
+        }).catch(function () { /* silent — optimistic UI already showed success */ });
+      } catch (err) { /* silent */ }
+    });
   })();
 </script>
 
