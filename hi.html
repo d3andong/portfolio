@@ -533,30 +533,14 @@
       return;
     }
 
-    // Brand display-name map — extend as Dean targets new companies
-    var BRANDS = {
-      'coreweave':   'CoreWeave',
-      'weightsandbiases': 'Weights & Biases',
-      'wandb':       'Weights & Biases',
-      'openai':      'OpenAI',
-      'anthropic':   'Anthropic',
-      'github':      'GitHub',
-      'gitlab':      'GitLab',
-      'youtube':     'YouTube',
-      'linkedin':    'LinkedIn',
-      'tiktok':      'TikTok',
-      'airbnb':      'Airbnb',
-      'stripe':      'Stripe',
-      'figma':       'Figma',
-      'notion':      'Notion',
-      'vercel':      'Vercel',
-      'posthog':     'PostHog'
-    };
-
-    // Display name precedence: ?n= override → BRANDS map → title-case fallback
+    // Display name: ?n= always wins; fall back to title-case of slug
+    // (hyphens treated as word separators). CLI always emits ?n= so
+    // the fallback only fires for manually-typed URLs.
     var displayName = (params.get('n') || '').trim();
     if (!displayName) {
-      displayName = BRANDS[slug] || (slug.charAt(0).toUpperCase() + slug.slice(1));
+      displayName = slug.split('-').map(function (w) {
+        return w.charAt(0).toUpperCase() + w.slice(1);
+      }).join(' ');
     }
 
     // Domain override for placeholder + Formspree metadata
