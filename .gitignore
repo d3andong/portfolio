@@ -1,2 +1,5 @@
 leads.json
 leads.json.corrupt.*
+.env
+insights/
+sent_emails.json
