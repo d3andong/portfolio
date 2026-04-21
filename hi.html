@@ -513,9 +513,19 @@
 
   /* ─── Runtime: read URL params, swap tokens, wire PostHog + Formspree ─── */
   (function () {
-    // Read URL params
     var params = new URLSearchParams(window.location.search);
-    var slug = (params.get('c') || '').trim().toLowerCase();
+
+    // Slug resolution, in priority order:
+    //   1. Explicit ?c= query param (direct access or CLI-generated links)
+    //   2. ?slug= (in case vercel.json forwards :slug literally)
+    //   3. Pathname parse: /hi/<slug> or /hi/<slug>/<person>
+    var slug = (params.get('c') || params.get('slug') || '').trim().toLowerCase();
+    if (!slug) {
+      var pathMatch = window.location.pathname.match(/^\/hi\/([^\/\?]+)(?:\/([^\/\?]+))?/);
+      if (pathMatch) {
+        slug = pathMatch[1].toLowerCase();
+      }
+    }
 
     // Direct-visit fallback — this page is never meant to be hit without a company slug
     if (!slug) {
@@ -523,19 +533,41 @@
       return;
     }
 
-    // Display name: explicit ?n= overrides; otherwise title-case the slug.
-    // Title-casing is imperfect (coreweave → Coreweave, not CoreWeave) so always
-    // pass ?n= from the CLI for brand-correct casing.
+    // Brand display-name map — extend as Dean targets new companies
+    var BRANDS = {
+      'coreweave':   'CoreWeave',
+      'weightsandbiases': 'Weights & Biases',
+      'wandb':       'Weights & Biases',
+      'openai':      'OpenAI',
+      'anthropic':   'Anthropic',
+      'github':      'GitHub',
+      'gitlab':      'GitLab',
+      'youtube':     'YouTube',
+      'linkedin':    'LinkedIn',
+      'tiktok':      'TikTok',
+      'airbnb':      'Airbnb',
+      'stripe':      'Stripe',
+      'figma':       'Figma',
+      'notion':      'Notion',
+      'vercel':      'Vercel',
+      'posthog':     'PostHog'
+    };
+
+    // Display name precedence: ?n= override → BRANDS map → title-case fallback
     var displayName = (params.get('n') || '').trim();
     if (!displayName) {
-      displayName = slug.charAt(0).toUpperCase() + slug.slice(1);
+      displayName = BRANDS[slug] || (slug.charAt(0).toUpperCase() + slug.slice(1));
     }
 
     // Domain override for placeholder + Formspree metadata
     var domain = (params.get('d') || '').trim().toLowerCase() || (slug + '.com');
 
-    // Person slug — used for distinct_id; optional
-    var personSlug = (params.get('p') || '').trim().toLowerCase();
+    // Person slug — ?p= query param, or second path segment from /hi/<slug>/<person>
+    var personSlug = (params.get('p') || params.get('person') || '').trim().toLowerCase();
+    if (!personSlug) {
+      var pm = window.location.pathname.match(/^\/hi\/[^\/\?]+\/([^\/\?]+)/);
+      if (pm) personSlug = pm[1].toLowerCase();
+    }
 
     // Optional note override — allows the CLI to push a custom intro later
     // (not currently rendered in hero, reserved for future use)
