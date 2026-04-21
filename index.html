@@ -841,6 +841,10 @@
   const el = document.getElementById('heroAscii');
   const hero = document.querySelector('.hero');
   if (!el || !hero) return;
+  // ascii_field_engaged — accumulate mousemove time, idle gaps >1500ms excluded
+  let engagedTotalMs = 0;
+  let engagedLastMove = null;
+  let engagedFired = false;
   const CHARS = ' .·:-=+*#%@';
   let cols=0, rows=0, mouseX=0.5, mouseY=0.5, scroll=0;
   function measure(){
@@ -880,8 +884,25 @@
     const r = hero.getBoundingClientRect();
     mouseX = Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
     mouseY = Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    const now = performance.now();
+    if (engagedLastMove === null || now - engagedLastMove > 1500) {
+      engagedLastMove = now;
+    } else {
+      engagedTotalMs += now - engagedLastMove;
+      engagedLastMove = now;
+    }
   });
   window.addEventListener('scroll', ()=>{ scroll = window.scrollY; });
+  function flushEngaged(){
+    if (engagedFired) return;
+    if (engagedTotalMs < 250) return;
+    engagedFired = true;
+    if (window.posthog && posthog.capture) {
+      try { posthog.capture('ascii_field_engaged', { duration_ms: Math.round(engagedTotalMs) }); } catch (_) {}
+    }
+  }
+  window.addEventListener('beforeunload', flushEngaged);
+  window.addEventListener('pagehide', flushEngaged);
   start();
 })();
 
@@ -902,10 +923,34 @@
   tick();
 })();
 
+/* Shared slug helper — single source of truth for case_slug across events.
+   Derives from .scramble[data-text] to stay stable during the scramble
+   animation (textContent is randomized mid-hover). */
+function getCaseSlug(caseEl){
+  if (!caseEl) return 'unknown';
+  var dataVal = caseEl.getAttribute('data-case');
+  if (dataVal && dataVal !== '' && dataVal !== 'true') {
+    return dataVal.toLowerCase().trim();
+  }
+  var scrambleEl = caseEl.querySelector('.scramble');
+  var titleText = scrambleEl && scrambleEl.dataset && scrambleEl.dataset.text;
+  if (!titleText) {
+    var titleEl = caseEl.querySelector('.case__title');
+    if (titleEl) titleText = titleEl.textContent;
+  }
+  if (titleText) {
+    return titleText.toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  return 'unknown';
+}
+
 /* Case cards: hover to expand + scramble on title */
 (function(){
   const cases = document.querySelectorAll('[data-case]');
   const ALPHA = '!<>-_\\/[]{}—=+*^?#________';
+  const openedSlugs = new Set();
   function scramble(el){
     const text = el.dataset.text;
     let frame = 0;
@@ -935,6 +980,13 @@
       cases.forEach(x => { if (x !== c) x.classList.remove('is-open'); });
       c.classList.add('is-open');
       if (scrambleEl) scramble(scrambleEl);
+      const slug = getCaseSlug(c);
+      if (!openedSlugs.has(slug)) {
+        openedSlugs.add(slug);
+        if (window.posthog && posthog.capture) {
+          try { posthog.capture('case_study_opened', { case_slug: slug }); } catch (_) {}
+        }
+      }
     });
     c.addEventListener('mouseleave', ()=>{
       hoverTimer = setTimeout(()=>{ c.classList.remove('is-open'); }, 150);
@@ -961,7 +1013,33 @@
       if (e.target.closest('[data-no-card-click]')) return;
       var link = card.querySelector('.case__aside .actions a:not(.primary)');
       if (link && link.getAttribute('href')) {
+        var slug = getCaseSlug(card);
+        if (window.posthog && posthog.capture) {
+          try { posthog.capture('case_study_clicked_through', { case_slug: slug, trigger: 'card' }); } catch (_) {}
+        }
         window.location.href = link.href;
+      }
+    });
+  });
+})();
+
+/* Case aside anchor tracking — case_study_clicked_through (link) + live_app_clicked */
+(function(){
+  document.querySelectorAll('.case__aside .actions a:not(.primary)').forEach(function(anchor){
+    anchor.addEventListener('click', function(){
+      var caseEl = anchor.closest('.case');
+      var slug = getCaseSlug(caseEl);
+      if (window.posthog && posthog.capture) {
+        try { posthog.capture('case_study_clicked_through', { case_slug: slug, trigger: 'link' }); } catch (_) {}
+      }
+    });
+  });
+  document.querySelectorAll('.case__aside .actions a.primary').forEach(function(anchor){
+    anchor.addEventListener('click', function(){
+      var caseEl = anchor.closest('.case');
+      var slug = getCaseSlug(caseEl);
+      if (window.posthog && posthog.capture) {
+        try { posthog.capture('live_app_clicked', { case_slug: slug, url: anchor.href }); } catch (_) {}
       }
     });
   });

@@ -38,22 +38,37 @@ entry. Never skip — context decays fast across agent sessions.
 
 ---
 
-## 2026-04-21 — (historical) Added 4 custom PostHog events
-**Commit:** <populate from Change 2 commit after next agent run>
-**Why:** Autocapture gives raw clicks ("clicked <span>") but the
-engagement report needs named events to describe behavior ("opened
-OnboardAI"). Four events chosen after scope-trimming exercise.
+## 2026-04-21 — Added 4 custom PostHog events + getCaseSlug helper
+**Commit:** pending (this commit)
+**Why:** Autocapture gives raw clicks ("clicked <span>"); the
+engagement report (insights.js, Phase 4a) needs named events to
+describe behavior ("opened OnboardAI"). Footer Portfolio.html →
+/ redirect was already handled in prior commit 1ce4f18.
 **What changed:**
-- Added `case_study_opened` (hover-expand, deduped per session/slug)
-- Added `case_study_clicked_through` (card or link trigger)
-- Added `live_app_clicked` (with target URL)
-- Added `ascii_field_engaged` (accumulated mousemove duration, fires
-  on `beforeunload`)
-- Fixed footer hrefs on case study pages (`Portfolio.html` → `/`)
+- Added `getCaseSlug()` helper at top level of index.html
+  `<script>` block (shared by the 3 case events)
+- Added `case_study_opened` (hover-expand, deduped per-slug via
+  IIFE-scope `Set`)
+- Added `case_study_clicked_through` (card trigger inside
+  whole-card handler; link trigger on `.actions a:not(.primary)`;
+  anchor-defer in whole-card handler prevents double-fire)
+- Added `live_app_clicked` on `.actions a.primary` clicks
+- Added `ascii_field_engaged` inside ASCII IIFE —
+  `performance.now()` delta accumulation with 1500ms idle gap,
+  `<250ms` guard, fired once via `beforeunload` + `pagehide`
 
-**Notes for future:** ASCII event scope was initially 3 events (count,
-duration, session_seq); trimmed to just `duration_ms` since the others
-can be derived from event stream if ever needed.
+**Notes for future:**
+- Slug consistency is load-bearing — `getCaseSlug()` is the
+  single source of truth. Don't inline slug derivation in new
+  events. insights.js joins events by `case_slug`; drift = silent
+  data breakage.
+- Slug derivation uses `.scramble[data-text]` (not `.textContent`)
+  because the scramble animation mutates textContent mid-hover.
+- ⚠ Integration gap to address: PostHog is NOT initialized on
+  `index.html` (only on `hi.html`). The defensive
+  `if (window.posthog && posthog.capture)` guard means these
+  events silently no-op in production until PostHog init is added
+  to index.html. Out of scope for this commit; file a follow-up.
 
 ---
 
