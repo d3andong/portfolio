@@ -668,7 +668,7 @@
       <div class="work__eyebrow">Selected Work</div>
       <h2 class="work__title">Things that <em>ship</em>&nbsp;.</h2>
     </div>
-    <div class="work__count">05 / Projects<br><span style="opacity:.5">2023 — 2026</span></div>
+    <div class="work__count">04 / Projects<br><span style="opacity:.5">2023 — 2026</span></div>
   </div>
 
   <div class="work__list" id="workList">
@@ -796,29 +796,6 @@
       </div>
     </article>
 
-    <article class="case" data-case style="opacity:.6">
-      <div class="case__row">
-        <span class="case__idx">(05)</span>
-        <span class="case__title"><span class="scramble" data-text="In Progress ···">In Progress ···</span></span>
-        <span class="case__meta"><span class="year">2026</span>Coming soon</span>
-        <span class="case__arrow" aria-hidden="true">∘</span>
-      </div>
-      <div class="case__detail">
-        <div class="case__detail-inner"><div class="case__detail-content">
-          <div class="case__detail-spacer"></div>
-          <div>
-            <p class="case__desc">Something new is cooking. Check back soon — or reach out if you want a preview.</p>
-          </div>
-          <aside class="case__aside">
-            <div class="row"><span class="k">Year</span><span class="v">2026</span></div>
-            <div class="actions">
-              <a href="#contact">Get in touch <span class="chev">→</span></a>
-            </div>
-          </aside>
-        </div></div>
-      </div>
-    </article>
-
   </div>
 </section>
 
@@ -852,7 +829,7 @@
 
 <footer class="footer">
   <span>© 2026 · Denver, CO</span>
-  <span>Built in Claude · <a href="#top" style="border-bottom:1px solid var(--fg-faint)">Back to top ↑</a></span>
+  <span><a href="#top" style="border-bottom:1px solid var(--fg-faint)">Back to top ↑</a></span>
 </footer>
 
 <div style="display:none" id="tweaks"><button id="tweaksClose" style="display:none"></button></div>
@@ -973,6 +950,20 @@
       title.style.transform = `translateX(${12+dx*10}px) rotateX(${-dy*3}deg) rotateY(${dx*5}deg)`;
     });
     c.addEventListener('mouseleave', ()=>{ title.style.transform=''; });
+  });
+})();
+
+/* Whole-card click → route to the card's case-study page */
+(function(){
+  document.querySelectorAll('[data-case]').forEach(function(card){
+    card.addEventListener('click', function(e){
+      if (e.target.closest('a')) return;
+      if (e.target.closest('[data-no-card-click]')) return;
+      var link = card.querySelector('.case__aside .actions a:not(.primary)');
+      if (link && link.getAttribute('href')) {
+        window.location.href = link.href;
+      }
+    });
   });
 })();
 
