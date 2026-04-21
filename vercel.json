@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/hi/:slug/:person", "destination": "/hi.html?c=:slug&p=:person" },
+    { "source": "/hi/:slug", "destination": "/hi.html?c=:slug" }
+  ]
+}
