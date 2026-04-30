@@ -18,6 +18,44 @@ understand how we got here.
 
 ---
 
+## 2026-04-30 — PostHog coverage fix across all pages
+**Commit:** pending (this commit)
+**Why:** Audit revealed PostHog was only installed on hi.html. The
+4 custom events fired from index.html (`case_study_opened`,
+`case_study_clicked_through`, `live_app_clicked`,
+`ascii_field_engaged`) were silently no-opping in production via the
+defensive `if (window.posthog && posthog.capture)` guard, and case
+study pages had no analytics at all. insights.js (Phase 4a) would
+have reported only the landing-page slice — no follow-on pageviews,
+no events, no session continuity beyond /hi/<slug>.
+**What changed:**
+- Audited all .html files at repo root and case-studies/ for
+  PostHog snippet — only hi.html had it.
+- Added the EXACT same posthog.init snippet (verbatim from hi.html,
+  same project key, same config: us.i.posthog.com, identified_only
+  person profiles, session recording on, autocapture on,
+  capture_pageview on) to:
+  - index.html
+  - case-studies/onboardai.html
+  - case-studies/fx-predict.html
+  - case-studies/community-hub.html
+  - case-studies/braindump.html
+- Snippet placed in <head> after `<title>` and before
+  `<link rel="preconnect">` — matches hi.html's relative position.
+
+**Notes for future:**
+- Any new HTML page added to the site MUST include the same
+  posthog.init snippet in <head>. Identical key + identical config —
+  person/session continuity across pageviews depends on every page
+  reporting into the same project.
+- If page count grows beyond ~6, consider extracting to a shared
+  include (Vercel build step or simple server-side include). For now,
+  copy-paste is fine.
+- Closes the integration gap flagged in the prior DEVLOG entry
+  ("⚠ Integration gap to address" under the 4 custom events commit).
+
+---
+
 ## 2026-04-21 — Scaffolded project coordination files
 **Commit:** pending (this commit)
 **Why:** Project has branched into multiple concurrent workstreams
